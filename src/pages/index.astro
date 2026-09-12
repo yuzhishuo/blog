@@ -1,0 +1,88 @@
+---
+import { Image } from 'astro:assets'
+
+import { Quote } from 'astro-pure/advanced'
+import { PostPreview } from 'astro-pure/components/pages'
+import { sortMDByDate } from 'astro-pure/server'
+import { getAllBlogPosts } from '@/lib/posts'
+import { Button, Icon, Label } from 'astro-pure/user'
+import PageLayout from '@/layouts/BaseLayout.astro'
+import Section from '@/components/home/Section.astro'
+import DoubanShelf from '@/components/home/DoubanShelf.astro'
+import doubanData from '@/data/douban.json'
+import config from '@/site-config'
+
+const MAX_POSTS = 6
+const allPosts = await getAllBlogPosts()
+const allPostsByDate = sortMDByDate(allPosts).slice(0, MAX_POSTS)
+
+const imagePath = config.logo.src
+const images = import.meta.glob<{ default: ImageMetadata }>(
+  '/src/assets/*.{jpeg,jpg,png,gif,avif,webp}'
+)
+if (!images[imagePath])
+  throw new Error(
+    `"${imagePath}" does not exist in glob: "src/assets/*.{jpeg,jpg,png,gif,avif,webp}"`
+  )
+---
+
+<PageLayout meta={{ title: 'Home' }}>
+  <main class='flex w-full flex-col items-center'>
+    <section class='animate mb-8 flex flex-col items-center gap-y-6' id='content-header'>
+      <Image
+        src={images[imagePath]()}
+        alt={config.logo.alt || 'Profile'}
+        class='h-28 w-auto rounded-full border p-1'
+        loading='eager'
+        fetchpriority='high'
+      />
+
+      <div class='flex flex-col items-center gap-y-4'>
+        <h1 class='text-3xl font-medium'>{config.author}</h1>
+        <div class='flex flex-wrap justify-center gap-x-7 gap-y-3'>
+          <Label title='Engineering'>
+            <Icon name='location' class='size-5' slot='icon' />
+          </Label>
+          <Label
+            title='GitHub'
+            as='a'
+            href='https://github.com/luluyuzhi'
+            target='_blank'
+          >
+            <Icon name='github' class='size-5' slot='icon' />
+          </Label>
+        </div>
+      </div>
+    </section>
+
+    <div id='content' class='animate flex flex-col gap-y-12 md:w-4/5 lg:w-5/6'>
+      <Section title='关于'>
+        <p class='text-muted-foreground'>Engineering · Linux · Tools</p>
+        <p class='text-muted-foreground'>
+          你好，我是 {config.author}。这里记录工程实践、Linux
+          与日常工具折腾的笔记——偏实用、可复现，少一点空话。
+        </p>
+        <Button title='了解更多' class='w-fit self-end' href='/about' variant='ahead' />
+      </Section>
+      {
+        allPostsByDate.length > 0 && (
+          <Section title='文章'>
+            <ul class='flex flex-col gap-y-1.5 sm:gap-y-2'>
+              {allPostsByDate.map((p) => (
+                <li class='flex flex-col gap-x-2 sm:flex-row'>
+                  <PostPreview post={p} />
+                </li>
+              ))}
+            </ul>
+            <Button title='更多文章' class='w-fit self-end' href='/blog' variant='ahead' />
+          </Section>
+        )
+      }
+
+      <Section title='看过 · 玩过 · 听过' class='md:items-start'>
+        <DoubanShelf data={doubanData} limit={10} />
+      </Section>
+    </div>
+    <Quote class='mt-14' />
+  </main>
+</PageLayout>

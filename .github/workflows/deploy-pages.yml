@@ -1,0 +1,57 @@
+# Build Astro Theme Pure in source repo, deploy dist to product repo
+# (yuzhishuo/yuzhishuo.github.io) for user-site Pages at https://yuzhishuo.github.io
+# Re-runs on a 15-minute schedule so Notion → build stays roughly fresh
+# once NOTION_TOKEN is set in source-repo secrets.
+name: Deploy GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    # Every 15 minutes (Notion sync trigger)
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install
+        run: npm ci || npm install
+
+      - name: Build
+        env:
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+          NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
+          NOTION_DATA_SOURCE_ID: ${{ secrets.NOTION_DATA_SOURCE_ID }}
+          DOUBAN_USER_ID: ${{ vars.DOUBAN_USER_ID }}
+        run: |
+          export NOTION_DATABASE_ID="${NOTION_DATABASE_ID:-2570b37ec46a4bf39795c1bbb6a66d8d}"
+          export NOTION_DATA_SOURCE_ID="${NOTION_DATA_SOURCE_ID:-a1a3b01e-711c-42fb-b3c1-c05b796fccfe}"
+          npm run build:ci
+
+      # Product repo hosts Pages from main branch root (not Actions deploy-pages).
+      - name: Deploy to yuzhishuo.github.io
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          personal_token: ${{ secrets.PAGES_DEPLOY_TOKEN }}
+          external_repository: yuzhishuo/yuzhishuo.github.io
+          publish_dir: dist
+          publish_branch: main
+          force_orphan: true

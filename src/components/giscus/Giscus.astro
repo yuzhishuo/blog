@@ -1,0 +1,46 @@
+---
+import { cn } from 'astro-pure/utils'
+import { getGiscusConfig, isGiscusReady } from '@/config/giscus'
+
+interface Props {
+  class?: string
+}
+
+const { class: className } = Astro.props
+const cfg = getGiscusConfig()
+const ready = isGiscusReady(cfg)
+---
+
+{
+  ready ? (
+    <div id="giscus" class={cn('not-prose giscus-wrap', className)}>
+      <script
+        is:inline
+        src="https://giscus.app/client.js"
+        data-repo={cfg.repo}
+        data-repo-id={cfg.repoId}
+        data-category={cfg.category}
+        data-category-id={cfg.categoryId}
+        data-mapping={cfg.mapping}
+        data-strict={cfg.strict}
+        data-reactions-enabled={cfg.reactionsEnabled}
+        data-emit-metadata={cfg.emitMetadata}
+        data-input-position={cfg.inputPosition}
+        data-theme={cfg.theme}
+        data-lang={cfg.lang}
+        data-loading={cfg.loading}
+        crossorigin="anonymous"
+        async
+      />
+    </div>
+  ) : (
+    <div id="giscus" class={cn('not-prose rounded-lg border border-dashed p-4 text-sm opacity-70', className)}>
+      <p>
+        <strong>Giscus</strong> comments are stubbed. Fill
+        <code>repo</code> / <code>repoId</code> / <code>category</code> / <code>categoryId</code>
+        in <code>src/site.config.ts</code> (or <code>PUBLIC_GISCUS_*</code> env) and set
+        <code>giscus.enable = true</code>. See SETUP.md.
+      </p>
+    </div>
+  )
+}

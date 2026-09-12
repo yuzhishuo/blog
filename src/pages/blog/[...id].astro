@@ -1,0 +1,43 @@
+---
+import type { MarkdownHeading } from 'astro'
+import { render } from 'astro:content'
+
+import { sortMDByDate } from 'astro-pure/server'
+import { getAllBlogPosts, type BlogPost } from '@/lib/posts'
+import PostLayout from '@/layouts/BlogPost.astro'
+
+export const prerender = true
+
+export async function getStaticPaths() {
+  const posts = sortMDByDate(await getAllBlogPosts())
+  return posts.map((post) => ({
+    params: { id: post.id },
+    props: { post, posts }
+  }))
+}
+
+type Props = {
+  post: BlogPost
+  posts: BlogPost[]
+}
+
+/** Notion loader TOC starts at depth 0; astro-pure generateToc requires depth ≥ 1. */
+function normalizeHeadings(raw: MarkdownHeading[] | undefined): MarkdownHeading[] {
+  const valid = (raw ?? []).filter(
+    (h): h is MarkdownHeading => !!h && typeof h.depth === 'number' && Number.isFinite(h.depth)
+  )
+  if (!valid.length) return []
+  const min = Math.min(...valid.map((h) => h.depth))
+  const shift = min < 1 ? 1 - min : 0
+  return shift ? valid.map((h) => ({ ...h, depth: h.depth + shift })) : valid
+}
+
+const { post, posts } = Astro.props
+const rendered = await render(post)
+const headings = normalizeHeadings(rendered.headings)
+const { Content, remarkPluginFrontmatter } = rendered
+---
+
+<PostLayout {post} {posts} {headings} {remarkPluginFrontmatter}>
+  <Content />
+</PostLayout>

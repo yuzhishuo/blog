@@ -1,0 +1,207 @@
+---
+/**
+ * Homepage Douban shelf — cover grid with type tabs.
+ * Covers are local files under /douban/ (downloaded at fetch time).
+ */
+import { cn } from 'astro-pure/utils'
+
+type DoubanItem = {
+  id: string
+  title: string
+  cover: string
+  url: string
+  type: 'movie' | 'music' | 'game'
+  status: string
+  rating?: number
+  date?: string
+}
+
+type DoubanData = {
+  updatedAt?: string
+  userId?: string
+  displayName?: string
+  profileUrl?: string
+  counts?: Partial<Record<'movie' | 'music' | 'game', number>>
+  items?: DoubanItem[]
+  fetchError?: string
+}
+
+interface Props {
+  data: DoubanData
+  /** Max covers per tab on the homepage */
+  limit?: number
+  class?: string
+}
+
+const { data, limit = 10, class: className } = Astro.props
+
+const items = Array.isArray(data?.items) ? data.items : []
+const tabs = [
+  { key: 'movie' as const, label: '电影', status: '看过' },
+  { key: 'game' as const, label: '游戏', status: '玩过' },
+  { key: 'music' as const, label: '音乐', status: '听过' }
+]
+
+const byType = Object.fromEntries(
+  tabs.map((t) => [t.key, items.filter((i) => i.type === t.key).slice(0, limit)])
+) as Record<(typeof tabs)[number]['key'], DoubanItem[]>
+
+const counts = {
+  movie: data?.counts?.movie ?? items.filter((i) => i.type === 'movie').length,
+  game: data?.counts?.game ?? items.filter((i) => i.type === 'game').length,
+  music: data?.counts?.music ?? items.filter((i) => i.type === 'music').length
+}
+
+const profileUrl = data?.profileUrl || 'https://www.douban.com/people/153627368/'
+const displayName = data?.displayName || '小新一点'
+const hasAny = items.length > 0
+const defaultTab =
+  (byType.movie.length && 'movie') ||
+  (byType.game.length && 'game') ||
+  (byType.music.length && 'music') ||
+  'movie'
+---
+
+{
+  hasAny ? (
+    <div class={cn('douban-shelf flex flex-col gap-y-5', className)} data-douban-shelf>
+      <div class='flex flex-wrap items-center justify-between gap-2'>
+        <p class='text-sm text-muted-foreground'>
+          {displayName} · 看过 / 玩过 / 听过
+          {data?.updatedAt && (
+            <span class='ms-1 opacity-70'>
+              · 更新于 {data.updatedAt.slice(0, 10)}
+            </span>
+          )}
+        </p>
+        <a
+          href={profileUrl}
+          target='_blank'
+          rel='noopener noreferrer'
+          class='text-sm text-muted-foreground underline-offset-4 hover:underline'
+        >
+          豆瓣主页
+        </a>
+      </div>
+
+      <div class='flex flex-wrap gap-2' role='tablist' aria-label='豆瓣分类'>
+        {tabs.map((t) => (
+          <button
+            type='button'
+            role='tab'
+            data-tab={t.key}
+            aria-selected={t.key === defaultTab ? 'true' : 'false'}
+            class={cn(
+              'douban-tab rounded-full border px-3 py-1 text-sm transition-colors',
+              t.key === defaultTab
+                ? 'border-foreground/30 bg-muted text-foreground'
+                : 'border-transparent text-muted-foreground hover:bg-muted/60'
+            )}
+          >
+            {t.label}
+            <span class='ms-1 opacity-70'>({counts[t.key]})</span>
+          </button>
+        ))}
+      </div>
+
+      {tabs.map((t) => (
+        <div
+          role='tabpanel'
+          data-panel={t.key}
+          class={cn('douban-panel', t.key !== defaultTab && 'hidden')}
+          hidden={t.key !== defaultTab}
+        >
+          {byType[t.key].length === 0 ? (
+            <p class='text-sm text-muted-foreground'>暂无{t.status}记录</p>
+          ) : (
+            <ul class='grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8'>
+              {byType[t.key].map((item) => (
+                <li>
+                  <a
+                    href={item.url}
+                    target='_blank'
+                    rel='noopener noreferrer'
+                    class='group flex flex-col gap-1'
+                    title={item.title}
+                  >
+                    <div class='aspect-[2/3] overflow-hidden rounded-md border bg-muted/40'>
+                      {item.cover ? (
+                        <img
+                          src={item.cover}
+                          alt={item.title}
+                          loading='lazy'
+                          decoding='async'
+                          referrerpolicy='no-referrer'
+                          class='h-full w-full object-cover transition-transform group-hover:scale-[1.03]'
+                        />
+                      ) : (
+                        <div class='flex h-full w-full items-center justify-center p-1 text-center text-xs text-muted-foreground'>
+                          {item.title}
+                        </div>
+                      )}
+                    </div>
+                    <span class='line-clamp-2 text-xs text-muted-foreground group-hover:text-foreground'>
+                      {item.title}
+                    </span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )}
+          {counts[t.key] > limit && (
+            <p class='mt-3 text-xs text-muted-foreground'>
+              首页展示最近 {limit} 条 · 共 {counts[t.key]} 条{t.status}
+              {' · '}
+              <a
+                href={profileUrl}
+                target='_blank'
+                rel='noopener noreferrer'
+                class='underline-offset-4 hover:underline'
+              >
+                在豆瓣查看全部
+              </a>
+            </p>
+          )}
+        </div>
+      ))}
+    </div>
+  ) : (
+    <p class='text-sm text-muted-foreground'>
+      暂无豆瓣缓存。运行 <code class='text-xs'>npm run douban</code> 拉取「看过 · 玩过 · 听过」。
+      {data?.fetchError && (
+        <span class='mt-1 block opacity-70'>上次失败：{data.fetchError}</span>
+      )}
+    </p>
+  )
+}
+
+<script>
+  function initDoubanShelf(root: HTMLElement) {
+    const tabs = root.querySelectorAll<HTMLButtonElement>('.douban-tab')
+    const panels = root.querySelectorAll<HTMLElement>('.douban-panel')
+    tabs.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const key = btn.dataset.tab
+        tabs.forEach((t) => {
+          const on = t.dataset.tab === key
+          t.setAttribute('aria-selected', on ? 'true' : 'false')
+          t.classList.toggle('border-foreground/30', on)
+          t.classList.toggle('bg-muted', on)
+          t.classList.toggle('text-foreground', on)
+          t.classList.toggle('border-transparent', !on)
+          t.classList.toggle('text-muted-foreground', !on)
+        })
+        panels.forEach((p) => {
+          const on = p.dataset.panel === key
+          p.classList.toggle('hidden', !on)
+          p.hidden = !on
+        })
+      })
+    })
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-douban-shelf]').forEach(initDoubanShelf)
+  document.addEventListener('astro:page-load', () => {
+    document.querySelectorAll<HTMLElement>('[data-douban-shelf]').forEach(initDoubanShelf)
+  })
+</script>

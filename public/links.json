@@ -1,0 +1,39 @@
+{
+  "friends": [
+    {
+      "id_name": "cf-links",
+      "desc": "Common links included in circle friends",
+      "link_list": [
+        {
+          "name": "Arthals' ink",
+          "intro": "所见高山远木，阔云流风；所幸岁月盈余，了无拘束",
+          "link": "https://arthals.ink/",
+          "avatar": "/favicon/favicon.ico"
+        },
+        {
+          "name": "CWorld Site",
+          "intro": "求知若愚，虚怀若谷",
+          "link": "https://cworld0.com/",
+          "avatar": "/favicon/favicon.ico"
+        }
+      ]
+    },
+    {
+      "id_name": "inactive-links",
+      "desc": "Inactive or rule-breaking friends",
+      "link_list": []
+    },
+    {
+      "id_name": "special-links",
+      "desc": "Other special links",
+      "link_list": [
+        {
+          "name": "Astro",
+          "intro": "The web framework for content-driven websites",
+          "link": "https://astro.build/",
+          "avatar": "/favicon/favicon.ico"
+        }
+      ]
+    }
+  ]
+}

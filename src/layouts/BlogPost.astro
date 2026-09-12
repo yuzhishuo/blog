@@ -1,0 +1,74 @@
+---
+import type { MarkdownHeading } from 'astro'
+// Plugin styles
+import 'katex/dist/katex.min.css'
+
+import { MediumZoom } from 'astro-pure/advanced'
+import { ArticleBottom, Copyright, Hero, TOC } from 'astro-pure/components/pages'
+import config from 'virtual:config'
+import PageLayout from '@/layouts/ContentLayout.astro'
+import { Giscus } from '@/components/giscus'
+import { PageInfo } from '@/components/waline'
+import type { BlogPost } from '@/lib/posts'
+
+interface Props {
+  post: BlogPost
+  posts: BlogPost[]
+  headings: MarkdownHeading[]
+  remarkPluginFrontmatter: Record<string, unknown>
+}
+
+const {
+  post: { id, data },
+  posts,
+  headings,
+  remarkPluginFrontmatter
+} = Astro.props
+
+const description = data.description
+const publishDate = data.publishDate
+const title = data.title
+const updatedDate = data.updatedDate
+const isDraft = data.draft
+const enableComment = data.comment
+const heroImage = 'heroImage' in data ? data.heroImage : undefined
+
+const socialImage = heroImage
+  ? typeof heroImage.src === 'string'
+    ? heroImage.src
+    : heroImage.src.src
+  : config.socialCard
+const articleDate = updatedDate?.toISOString() ?? publishDate.toISOString()
+const primaryColor =
+  (heroImage && 'color' in heroImage ? heroImage.color : undefined) ??
+  'hsl(var(--primary) / var(--un-text-opacity))'
+---
+
+<PageLayout
+  meta={{ articleDate, description, ogImage: socialImage, title }}
+  highlightColor={primaryColor}
+  back='/blog'
+>
+  {!!headings.length && <TOC {headings} slot='sidebar' />}
+
+  <Hero data={data as any} {remarkPluginFrontmatter} slot='header'>
+    <Fragment slot='description'>
+      {!isDraft && enableComment && <PageInfo comment={false} class='mt-1' />}
+    </Fragment>
+  </Hero>
+
+  <slot />
+
+  <Fragment slot='bottom'>
+    {/* Copyright */}
+    <Copyright data={data as any} />
+    {/* Article recommend */}
+    <ArticleBottom collections={posts} {id} class='mt-3 sm:mt-6' />
+    {/* Comments: Giscus (Waline disabled) */}
+    {!isDraft && enableComment && <Giscus class='mt-3 sm:mt-6' />}
+  </Fragment>
+
+  <slot name='bottom-sidebar' slot='bottom-sidebar' />
+</PageLayout>
+
+{config.integ.mediumZoom.enable && <MediumZoom />}
