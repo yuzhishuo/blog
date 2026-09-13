@@ -36,10 +36,11 @@ const ready = isGiscusReady(cfg)
   ) : (
     <div id="giscus" class={cn('not-prose rounded-lg border border-dashed p-4 text-sm opacity-70', className)}>
       <p>
-        <strong>Giscus</strong> comments are stubbed. Fill
+        评论组件尚未就绪。请在 <code>src/site.config.ts</code> 填写
         <code>repo</code> / <code>repoId</code> / <code>category</code> / <code>categoryId</code>
-        in <code>src/site.config.ts</code> (or <code>PUBLIC_GISCUS_*</code> env) and set
-        <code>giscus.enable = true</code>. See SETUP.md.
+       （或设置 <code>PUBLIC_GISCUS_*</code>），并将 <code>giscus.enable</code> 设为
+        <code>true</code>。详见 SETUP.md。若配置已就绪但仍无评论，请确认已安装
+        <a href="https://github.com/apps/giscus" target="_blank" rel="noopener">Giscus GitHub App</a>。
       </p>
     </div>
   )

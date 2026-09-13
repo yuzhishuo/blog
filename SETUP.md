@@ -61,16 +61,24 @@ Feed is enabled via `src/pages/rss.xml.ts` (`@astrojs/rss`).
 
 ---
 
-## Giscus (stubbed) / 评论占位
+## Giscus (live) / 评论已启用
 
-Waline is **disabled**. Giscus is wired in layouts but **not live** until you fill IDs.
+Waline is **disabled**. Giscus is **configured and live** on `yuzhishuo/blog` (Discussions category: Announcements).
 
-1. Enable **Discussions** on the GitHub repo
-2. Open [giscus.app](https://giscus.app) → copy `repo`, `repoId`, `category`, `categoryId`
-3. Edit `giscus` in `src/site.config.ts` (or set `PUBLIC_GISCUS_*` in `.env`) and set `enable: true`
-4. Component: `src/components/giscus/Giscus.astro` · helper: `src/config/giscus.ts`
+| Field | Value |
+|-------|-------|
+| `repo` | `yuzhishuo/blog` |
+| `repoId` | `R_kgDOUYAkfQ` |
+| `category` | `Announcements` |
+| `categoryId` | `DIC_kwDOUYAkfc4DFe3D` |
+| `mapping` | `pathname` |
+| `lang` | `zh-CN` |
 
-Until configured, posts show a dashed “stubbed” notice instead of the widget.
+Config lives in `src/site.config.ts` (`giscus`); override via `PUBLIC_GISCUS_*` if needed.  
+Component: `src/components/giscus/Giscus.astro` · helper: `src/config/giscus.ts`.  
+Loaded on **BlogPost** and pages using CommonPage with `comment` (e.g. `/links`, `/about`).
+
+If the widget fails to load, install the [Giscus GitHub App](https://github.com/apps/giscus) on the repo. Fallback Chinese stub text appears when config is incomplete.
 
 ---
 
@@ -192,7 +200,7 @@ npm run build
 - 本地：`npm i && npm run build:ci`（无 token 可构建）；开发：`npm run dev`
 - RSS：`/rss.xml`（双源；顶栏「订阅」与首页「订阅 RSS」）
 - 文章页分享：微信扫码 + 复制链接 / 知乎粘贴（`ShareChina`；主题 share 仅 weibo）
-- Giscus：配置项已留空（TODO），Waline 已关
+- Giscus：已启用（`yuzhishuo/blog` Discussions / Announcements）；Waline 已关；若无评论请安装 Giscus App
 - Notion：正式 Integration 加载已接入；发布 = Status「已发布」→ Actions（含 15 分钟定时）→ Pages
 - 豆瓣：`npm run douban` → `src/data/douban.json`；首页「看过 · 玩过 · 听过」；`DOUBAN_USER_ID` 默认 153627368
 - 双仓：源 `yuzhishuo/blog`（CI）→ 产物 `yuzhishuo/yuzhishuo.github.io`（Pages `main` 根目录）；源仓 secrets：`NOTION_TOKEN` + `PAGES_DEPLOY_TOKEN`

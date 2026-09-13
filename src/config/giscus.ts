@@ -1,7 +1,7 @@
 /**
- * Giscus comment config (placeholder).
+ * Giscus comment config.
  * Prefer editing `giscus` in `src/site.config.ts`, or set PUBLIC_GISCUS_* in `.env`.
- * Get IDs from https://giscus.app after enabling Discussions on the repo.
+ * IDs from https://giscus.app; Discussions enabled on yuzhishuo/blog.
  */
 import { giscus as siteGiscus } from '../site.config'
 

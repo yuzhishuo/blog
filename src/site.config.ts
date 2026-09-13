@@ -95,7 +95,7 @@ export const integ: IntegrationUserConfig = {
       className: 'zoomable'
     }
   },
-  // Waline disabled — using Giscus placeholder (see src/config/giscus.ts)
+  // Waline disabled — using Giscus (see src/config/giscus.ts)
   waline: {
     enable: false,
     server: '',
@@ -109,15 +109,16 @@ export const integ: IntegrationUserConfig = {
 }
 
 /**
- * Giscus comments — fill after creating a Discussions-enabled GitHub repo.
+ * Giscus comments — Discussions enabled on yuzhishuo/blog.
  * See SETUP.md. Values can also be overridden via PUBLIC_GISCUS_* env vars.
+ * Giscus GitHub App install may still be needed for the widget to load.
  */
 export const giscus = {
-  enable: false, // set true once repo/repoId/category/categoryId are filled
-  repo: '' as string, // TODO: e.g. 'yuzhishuo/blog'
-  repoId: '' as string, // TODO: from https://giscus.app
-  category: 'Announcements' as string, // TODO
-  categoryId: '' as string, // TODO
+  enable: true,
+  repo: 'yuzhishuo/blog',
+  repoId: 'R_kgDOUYAkfQ',
+  category: 'Announcements',
+  categoryId: 'DIC_kwDOUYAkfc4DFe3D',
   mapping: 'pathname' as const,
   strict: '0' as const,
   reactionsEnabled: '1' as const,
