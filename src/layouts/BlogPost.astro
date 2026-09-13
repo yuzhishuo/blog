@@ -22,12 +22,8 @@ interface Props {
   remarkPluginFrontmatter: Record<string, unknown>
 }
 
-const {
-  post: { id, data },
-  posts,
-  headings,
-  remarkPluginFrontmatter
-} = Astro.props
+const { post, posts, headings, remarkPluginFrontmatter } = Astro.props
+const { id, data } = post
 
 const description = data.description
 const publishDate = data.publishDate
