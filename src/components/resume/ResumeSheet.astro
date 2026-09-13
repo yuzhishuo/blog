@@ -1,8 +1,7 @@
 ---
 /**
- * Blog-fused resume body (JSON → HTML).
- * Screen: normal blog content styles.
- * Print: same structure, chrome hidden by page CSS.
+ * Special resume layout (blog-themed, not PDF card).
+ * Print: only this block is visible (page CSS).
  */
 import type { ResumeData } from '@/lib/resume'
 import { cn } from 'astro-pure/utils'
@@ -13,33 +12,38 @@ interface Props {
 }
 
 const { data, class: className } = Astro.props
+const chips = [
+  data.years,
+  `意向 · ${data.intent}`,
+  `城市 · ${data.city}`
+].filter(Boolean)
 ---
 
 <div class={cn('resume-body not-prose', className)} id='resume-sheet'>
-  <header class='resume-intro mb-8 border-b border-border pb-6'>
-    <p class='m-0 text-3xl font-medium tracking-wide text-foreground sm:text-4xl'>{data.name}</p>
-    <p class='mt-2 m-0 text-sm text-muted-foreground'>
-      {[data.age, data.phone, data.email].filter(Boolean).join(' · ')}
+  <header class='resume-hero'>
+    <div class='resume-hero-accent' aria-hidden='true'></div>
+    <h1 class='resume-name'>{data.name}</h1>
+    <p class='resume-contact'>
+      <span>{data.age}</span>
+      <span class='sep' aria-hidden='true'>·</span>
+      <a href={`tel:${data.phone}`}>{data.phone}</a>
+      <span class='sep' aria-hidden='true'>·</span>
+      <a href={`mailto:${data.email}`}>{data.email}</a>
     </p>
-    <p class='mt-1 m-0 text-sm text-muted-foreground'>
-      {[data.years, `求职意向：${data.intent}`, `期望城市：${data.city}`].filter(Boolean).join(' · ')}
-    </p>
+    <ul class='resume-chips'>
+      {chips.map((c) => <li>{c}</li>)}
+    </ul>
     {
-      (data.github || data.website) && (
-        <p class='mt-2 m-0 flex flex-wrap gap-x-3 gap-y-1 text-sm'>
+      (data.website || data.github) && (
+        <p class='resume-links'>
           {data.website && (
-            <a class='text-primary hover:underline' href={data.website} target='_blank' rel='noopener'>
-              博客
+            <a href={data.website} target='_blank' rel='noopener'>
+              {data.website.replace(/^https?:\/\//, '')}
             </a>
           )}
           {data.github && (
-            <a
-              class='text-primary hover:underline'
-              href={`https://github.com/${data.github}`}
-              target='_blank'
-              rel='noopener'
-            >
-              GitHub
+            <a href={`https://github.com/${data.github}`} target='_blank' rel='noopener'>
+              github.com/{data.github}
             </a>
           )}
         </p>
@@ -47,43 +51,43 @@ const { data, class: className } = Astro.props
     }
   </header>
 
-  <section class='resume-block mb-8' id='education'>
-    <h2 class='mb-4 mt-0 text-xl font-medium text-foreground'>教育经历</h2>
-    <ul class='m-0 flex list-none flex-col gap-4 p-0'>
+  <section class='resume-section' id='education'>
+    <h2>教育经历</h2>
+    <ul class='resume-edu'>
       {
         data.education.map((ed) => (
-          <li class='grid gap-1 sm:grid-cols-[1fr_auto] sm:items-baseline sm:gap-4'>
-            <div class='min-w-0'>
-              <p class='m-0 font-medium text-foreground'>{ed.school}</p>
-              <p class='m-0 text-sm text-muted-foreground'>
+          <li>
+            <div class='left'>
+              <p class='title'>{ed.school}</p>
+              <p class='sub'>
                 {ed.degree} · {ed.major}
               </p>
             </div>
-            <p class='m-0 text-sm tabular-nums text-muted-foreground'>
+            <time class='when'>
               {ed.start}–{ed.end}
-            </p>
+            </time>
           </li>
         ))
       }
     </ul>
   </section>
 
-  <section class='resume-block mb-8' id='experience'>
-    <h2 class='mb-4 mt-0 text-xl font-medium text-foreground'>工作经历</h2>
-    <div class='flex flex-col gap-6'>
+  <section class='resume-section' id='experience'>
+    <h2>工作经历</h2>
+    <div class='resume-jobs'>
       {
         data.experience.map((job) => (
-          <article>
-            <div class='grid gap-1 sm:grid-cols-[1fr_auto] sm:items-baseline sm:gap-4'>
-              <div class='min-w-0'>
-                <p class='m-0 font-medium text-foreground'>{job.company}</p>
-                <p class='m-0 text-sm text-muted-foreground'>{job.title}</p>
+          <article class='job'>
+            <div class='job-head'>
+              <div class='left'>
+                <p class='title'>{job.company}</p>
+                <p class='sub'>{job.title}</p>
               </div>
-              <p class='m-0 text-sm tabular-nums text-muted-foreground'>
+              <time class='when'>
                 {job.start}–{job.end}
-              </p>
+              </time>
             </div>
-            <ul class='mt-2 mb-0 list-disc space-y-1.5 ps-5 text-sm leading-relaxed text-foreground/90'>
+            <ul class='bullets'>
               {job.bullets.map((b) => (
                 <li>{b}</li>
               ))}
@@ -94,20 +98,280 @@ const { data, class: className } = Astro.props
     </div>
   </section>
 
-  <section class='resume-block mb-2' id='skills'>
-    <h2 class='mb-4 mt-0 text-xl font-medium text-foreground'>专业技能</h2>
-    <ol class='mb-0 list-decimal space-y-2 ps-5 text-sm leading-relaxed text-foreground/90'>
+  <section class='resume-section' id='skills'>
+    <h2>专业技能</h2>
+    <ol class='resume-skills'>
       {data.skills.map((s) => <li>{s}</li>)}
     </ol>
   </section>
 </div>
 
 <style>
+  .resume-body {
+    --r-ink: hsl(var(--foreground));
+    --r-muted: hsl(var(--muted-foreground));
+    --r-line: hsl(var(--border));
+    --r-card: hsl(var(--muted) / 0.35);
+    --r-accent: hsl(var(--primary));
+    max-width: 46rem;
+    margin: 0 auto;
+    color: var(--r-ink);
+  }
+
+  .resume-hero {
+    position: relative;
+    margin-bottom: 2rem;
+    padding: 1.25rem 1.25rem 1.35rem;
+    border: 1px solid var(--r-line);
+    border-radius: 1.25rem;
+    background: linear-gradient(
+      165deg,
+      hsl(var(--primary) / 0.08),
+      hsl(var(--muted) / 0.25) 45%,
+      transparent 100%
+    );
+  }
+
+  .resume-hero-accent {
+    position: absolute;
+    inset-inline-start: 0;
+    top: 1.1rem;
+    bottom: 1.1rem;
+    width: 3px;
+    border-radius: 999px;
+    background: var(--r-accent);
+  }
+
+  .resume-name {
+    margin: 0;
+    padding-inline-start: 0.85rem;
+    font-size: clamp(1.85rem, 4vw, 2.35rem);
+    font-weight: 650;
+    letter-spacing: 0.08em;
+    line-height: 1.2;
+  }
+
+  .resume-contact {
+    margin: 0.65rem 0 0;
+    padding-inline-start: 0.85rem;
+    font-size: 0.925rem;
+    color: var(--r-muted);
+  }
+
+  .resume-contact a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .resume-contact a:hover {
+    color: var(--r-accent);
+  }
+
+  .resume-contact .sep {
+    margin: 0 0.35rem;
+    opacity: 0.55;
+  }
+
+  .resume-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    margin: 0.85rem 0 0;
+    padding: 0 0 0 0.85rem;
+    list-style: none;
+  }
+
+  .resume-chips li {
+    border: 1px solid var(--r-line);
+    border-radius: 999px;
+    background: hsl(var(--background) / 0.7);
+    padding: 0.2rem 0.7rem;
+    font-size: 0.78rem;
+    color: var(--r-muted);
+  }
+
+  .resume-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 1rem;
+    margin: 0.75rem 0 0;
+    padding-inline-start: 0.85rem;
+    font-size: 0.85rem;
+  }
+
+  .resume-links a {
+    color: var(--r-accent);
+    text-decoration: none;
+  }
+
+  .resume-links a:hover {
+    text-decoration: underline;
+  }
+
+  .resume-section {
+    margin-top: 1.75rem;
+  }
+
+  .resume-section > h2 {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    margin: 0 0 0.9rem;
+    font-size: 1.05rem;
+    font-weight: 650;
+  }
+
+  .resume-section > h2::before {
+    content: '';
+    width: 0.45rem;
+    height: 0.45rem;
+    border-radius: 999px;
+    background: var(--r-accent);
+    flex-shrink: 0;
+  }
+
+  .resume-edu {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+  }
+
+  .resume-edu > li,
+  .job-head {
+    display: grid;
+    gap: 0.25rem 1rem;
+  }
+
+  @media (min-width: 640px) {
+    .resume-edu > li,
+    .job-head {
+      grid-template-columns: 1fr auto;
+      align-items: baseline;
+    }
+  }
+
+  .title {
+    margin: 0;
+    font-weight: 600;
+  }
+
+  .sub {
+    margin: 0.15rem 0 0;
+    font-size: 0.9rem;
+    color: var(--r-muted);
+  }
+
+  .when {
+    font-size: 0.85rem;
+    color: var(--r-muted);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .resume-jobs {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .job {
+    border: 1px solid var(--r-line);
+    border-radius: 1rem;
+    background: var(--r-card);
+    padding: 1rem 1.05rem 1.05rem;
+  }
+
+  .bullets {
+    margin: 0.65rem 0 0;
+    padding-inline-start: 1.15rem;
+    font-size: 0.92rem;
+    line-height: 1.65;
+  }
+
+  .bullets li + li {
+    margin-top: 0.3rem;
+  }
+
+  .resume-skills {
+    margin: 0;
+    padding-inline-start: 1.2rem;
+    font-size: 0.92rem;
+    line-height: 1.65;
+  }
+
+  .resume-skills li + li {
+    margin-top: 0.45rem;
+  }
+
+  /* Print: tighten, drop decorative chips look slightly, keep structure */
   @media print {
     .resume-body {
-      color: #111 !important;
+      --r-ink: #111;
+      --r-muted: #444;
+      --r-line: #ccc;
+      --r-card: #fff;
+      --r-accent: #333;
+      max-width: none;
     }
-    .resume-body :global(a) {
+
+    .resume-hero {
+      border: none;
+      border-radius: 0;
+      background: none !important;
+      padding: 0 0 0.6rem;
+      margin-bottom: 0.9rem;
+      border-bottom: 1px solid #ccc;
+    }
+
+    .resume-hero-accent {
+      display: none;
+    }
+
+    .resume-name {
+      padding-inline-start: 0;
+      font-size: 22pt;
+    }
+
+    .resume-contact,
+    .resume-chips,
+    .resume-links {
+      padding-inline-start: 0;
+    }
+
+    .resume-chips li {
+      border: none;
+      background: none;
+      padding: 0;
+    }
+
+    .resume-chips li:not(:last-child)::after {
+      content: ' · ';
+    }
+
+    .resume-chips {
+      gap: 0;
+    }
+
+    .job {
+      border: none;
+      border-radius: 0;
+      background: none !important;
+      padding: 0;
+    }
+
+    .resume-jobs {
+      gap: 0.85rem;
+    }
+
+    .resume-section > h2::before {
+      background: #111;
+    }
+
+    .resume-links a,
+    .resume-contact a {
       color: #111 !important;
       text-decoration: none !important;
     }

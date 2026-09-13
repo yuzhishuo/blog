@@ -1,77 +1,158 @@
 ---
-import PageLayout from '@/layouts/CommonPage.astro'
+import { Header, ThemeProvider } from 'astro-pure/components/basic'
+import Footer from '@/components/Footer.astro'
+import BaseHead from '@/components/BaseHead.astro'
 import ResumeSheet from '@/components/resume/ResumeSheet.astro'
+import config from '@/site-config'
 import raw from '@/data/resume.json'
 import type { ResumeData } from '@/lib/resume'
+import '@/assets/styles/global.css'
+import '@/assets/styles/app.css'
 
 const data = raw as ResumeData
-const headings = [
-  { depth: 2, slug: 'education', text: '教育经历' },
-  { depth: 2, slug: 'experience', text: '工作经历' },
-  { depth: 2, slug: 'skills', text: '专业技能' }
-]
+const title = `${data.name} · 简历`
 ---
 
-<PageLayout title='简历' {headings}>
-  <div class='no-print mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border bg-muted/40 px-4 py-3 text-sm'>
-    <p class='m-0 text-muted-foreground'>
-      数据源 <code>resume/resume.json</code> · 与博客同风格 · Ctrl/⌘ + P 打印
-    </p>
-    <button
-      type='button'
-      id='resume-print-btn'
-      class='rounded-xl border bg-background px-3 py-1.5 text-foreground transition-colors hover:border-primary/40 hover:text-primary'
-    >
-      打印简历
-    </button>
-  </div>
+<html lang={config.locale.lang} class='resume-page'>
+  <head>
+    <BaseHead description={`${data.intent} · ${data.city}`} title={title} />
+    <ThemeProvider />
+    <style is:global>
+      @page {
+        size: A4;
+        margin: 12mm 14mm;
+      }
 
-  <ResumeSheet data={data} />
-</PageLayout>
+      html.resume-page body {
+        background: hsl(var(--background));
+      }
 
-<style is:global>
-  @page {
-    size: A4;
-    margin: 14mm;
-  }
+      .resume-page-shell {
+        width: 100%;
+        max-width: 70rem;
+        margin: 0 auto;
+        min-height: 100dvh;
+        display: flex;
+        flex-direction: column;
+      }
 
-  @media print {
-    .no-print,
-    header,
-    footer,
-    #header,
-    #sidebar,
-    #sidebar-shade,
-    #back-to-top,
-    nav,
-    .back-btn,
-    button#sidebar-btn,
-    button#share-btn {
-      display: none !important;
-    }
+      .resume-toolbar {
+        position: sticky;
+        top: 0;
+        z-index: 30;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        margin: 0.75rem 1rem 0;
+        padding: 0.7rem 0.9rem;
+        border: 1px solid hsl(var(--border));
+        border-radius: 1rem;
+        background: hsl(var(--background) / 0.92);
+        backdrop-filter: blur(10px);
+      }
 
-    #main-container,
-    main,
-    .flex-1 {
-      max-width: none !important;
-      width: 100% !important;
-      margin: 0 !important;
-      padding: 0 !important;
-      min-height: 0 !important;
-    }
+      .resume-toolbar p {
+        margin: 0;
+        font-size: 0.85rem;
+        color: hsl(var(--muted-foreground));
+      }
 
-    body {
-      background: #fff !important;
-      color: #111 !important;
-    }
+      .resume-toolbar-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.45rem;
+      }
 
-    html.has-floating-actions #main-container {
-      padding-bottom: 0 !important;
-      padding-right: 0 !important;
-    }
-  }
-</style>
+      .resume-toolbar a,
+      .resume-toolbar button {
+        display: inline-flex;
+        align-items: center;
+        border-radius: 0.75rem;
+        border: 1px solid hsl(var(--border));
+        background: hsl(var(--muted) / 0.45);
+        padding: 0.35rem 0.8rem;
+        font-size: 0.85rem;
+        color: hsl(var(--foreground));
+        text-decoration: none;
+        cursor: pointer;
+      }
 
-<script>
-  document.getElementById('resume-print-btn')?.addEventListener('click', () => window.print())
-</script>
+      .resume-toolbar button.primary {
+        border-color: transparent;
+        background: hsl(var(--primary));
+        color: hsl(var(--primary-foreground));
+      }
+
+      .resume-main {
+        flex: 1;
+        padding: 1.25rem 1rem 2.5rem;
+      }
+
+      /*
+        Print: hide ALL site chrome. Only #resume-sheet is visible.
+        This is intentional and separate from screen layout.
+      */
+      @media print {
+        html.resume-page,
+        html.resume-page body {
+          background: #fff !important;
+          color: #111 !important;
+        }
+
+        html.resume-page body * {
+          visibility: hidden !important;
+        }
+
+        html.resume-page #resume-sheet,
+        html.resume-page #resume-sheet * {
+          visibility: visible !important;
+        }
+
+        html.resume-page #resume-sheet {
+          position: absolute !important;
+          inset: 0 auto auto 0 !important;
+          width: 100% !important;
+          max-width: none !important;
+          margin: 0 !important;
+          padding: 0 !important;
+        }
+
+        .resume-site-chrome,
+        .resume-toolbar {
+          display: none !important;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class='resume-page-shell'>
+      <div class='resume-site-chrome'>
+        <Header />
+      </div>
+
+      <div class='resume-toolbar resume-site-chrome'>
+        <p>简历页独立排版 · 数据 <code>resume/resume.json</code></p>
+        <div class='resume-toolbar-actions'>
+          <button type='button' class='primary' id='resume-print-btn'>打印（无网页头）</button>
+          <a href='/'>回首页</a>
+          <a href='/about'>关于</a>
+        </div>
+      </div>
+
+      <main class='resume-main'>
+        <ResumeSheet data={data} />
+      </main>
+
+      <div class='resume-site-chrome mx-auto w-full max-w-[70rem] px-4'>
+        <Footer />
+      </div>
+    </div>
+
+    <script>
+      document.getElementById('resume-print-btn')?.addEventListener('click', () => window.print())
+    </script>
+  </body>
+</html>
