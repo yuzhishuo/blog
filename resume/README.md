@@ -1,16 +1,9 @@
-# 简历数据（前端渲染 + 打印）
+# 简历（融进博客的 HTML）
 
-- **数据源**：`resume/resume.json`（改完后同步到 `src/data/resume.json`，或直接改 `src/data/resume.json`）
-- **展示**：`/resume` 用 HTML 渲染（直聘风格单栏）
-- **打印**：页面上「打印简历」或 Ctrl/⌘ + P —— 只打简历纸，不嵌 PDF
-
-同步命令：
+- 数据：`resume/resume.json` → 同步到 `src/data/resume.json`
+- 页面：`/resume`，用博客 `CommonPage` 布局渲染（不是 PDF、不是白纸卡片）
+- 打印：Ctrl/⌘ + P 或页内「打印简历」
 
 ```bash
 cp resume/resume.json src/data/resume.json
 ```
-
-CI/`npm run build` 前建议拷一次；也可只维护 `src/data/resume.json`。
-
-
-> 已取消 `public/resume.pdf` 嵌入。线上只看 `/resume` HTML。

@@ -1,220 +1,115 @@
 ---
 /**
- * Chinese CV sheet — screen preview and Ctrl+P use the SAME layout.
+ * Blog-fused resume body (JSON → HTML).
+ * Screen: normal blog content styles.
+ * Print: same structure, chrome hidden by page CSS.
  */
 import type { ResumeData } from '@/lib/resume'
+import { cn } from 'astro-pure/utils'
 
 interface Props {
   data: ResumeData
+  class?: string
 }
 
-const { data } = Astro.props
-const contact = [data.age, data.phone, data.email].filter(Boolean).join('  |  ')
-const meta = [data.years, `求职意向：${data.intent}`, `期望城市：${data.city}`]
-  .filter(Boolean)
-  .join('  |  ')
+const { data, class: className } = Astro.props
 ---
 
-<article class='resume-sheet' id='resume-sheet'>
-  <header class='resume-header'>
-    <h1 class='resume-name'>{data.name}</h1>
-    <p class='resume-contact'>{contact}</p>
-    <p class='resume-meta'>{meta}</p>
+<div class={cn('resume-body not-prose', className)} id='resume-sheet'>
+  <header class='resume-intro mb-8 border-b border-border pb-6'>
+    <p class='m-0 text-3xl font-medium tracking-wide text-foreground sm:text-4xl'>{data.name}</p>
+    <p class='mt-2 m-0 text-sm text-muted-foreground'>
+      {[data.age, data.phone, data.email].filter(Boolean).join(' · ')}
+    </p>
+    <p class='mt-1 m-0 text-sm text-muted-foreground'>
+      {[data.years, `求职意向：${data.intent}`, `期望城市：${data.city}`].filter(Boolean).join(' · ')}
+    </p>
+    {
+      (data.github || data.website) && (
+        <p class='mt-2 m-0 flex flex-wrap gap-x-3 gap-y-1 text-sm'>
+          {data.website && (
+            <a class='text-primary hover:underline' href={data.website} target='_blank' rel='noopener'>
+              博客
+            </a>
+          )}
+          {data.github && (
+            <a
+              class='text-primary hover:underline'
+              href={`https://github.com/${data.github}`}
+              target='_blank'
+              rel='noopener'
+            >
+              GitHub
+            </a>
+          )}
+        </p>
+      )
+    }
   </header>
 
-  <section class='resume-section'>
-    <h2 class='resume-section-title'>教育经历</h2>
-    <ul class='resume-list'>
+  <section class='resume-block mb-8' id='education'>
+    <h2 class='mb-4 mt-0 text-xl font-medium text-foreground'>教育经历</h2>
+    <ul class='m-0 flex list-none flex-col gap-4 p-0'>
       {
         data.education.map((ed) => (
-          <li class='resume-row'>
-            <div class='resume-row-main'>
-              <span class='resume-strong'>{ed.school}</span>
-              <span class='resume-dim'>{ed.degree}</span>
-              <span class='resume-dim'>{ed.major}</span>
+          <li class='grid gap-1 sm:grid-cols-[1fr_auto] sm:items-baseline sm:gap-4'>
+            <div class='min-w-0'>
+              <p class='m-0 font-medium text-foreground'>{ed.school}</p>
+              <p class='m-0 text-sm text-muted-foreground'>
+                {ed.degree} · {ed.major}
+              </p>
             </div>
-            <span class='resume-date'>
-              {ed.start}-{ed.end}
-            </span>
+            <p class='m-0 text-sm tabular-nums text-muted-foreground'>
+              {ed.start}–{ed.end}
+            </p>
           </li>
         ))
       }
     </ul>
   </section>
 
-  <section class='resume-section'>
-    <h2 class='resume-section-title'>工作经历</h2>
-    {
-      data.experience.map((job) => (
-        <div class='resume-job'>
-          <div class='resume-row'>
-            <div class='resume-row-main'>
-              <span class='resume-strong'>{job.company}</span>
-              <span class='resume-dim'>{job.title}</span>
+  <section class='resume-block mb-8' id='experience'>
+    <h2 class='mb-4 mt-0 text-xl font-medium text-foreground'>工作经历</h2>
+    <div class='flex flex-col gap-6'>
+      {
+        data.experience.map((job) => (
+          <article>
+            <div class='grid gap-1 sm:grid-cols-[1fr_auto] sm:items-baseline sm:gap-4'>
+              <div class='min-w-0'>
+                <p class='m-0 font-medium text-foreground'>{job.company}</p>
+                <p class='m-0 text-sm text-muted-foreground'>{job.title}</p>
+              </div>
+              <p class='m-0 text-sm tabular-nums text-muted-foreground'>
+                {job.start}–{job.end}
+              </p>
             </div>
-            <span class='resume-date'>
-              {job.start}-{job.end}
-            </span>
-          </div>
-          <ul class='resume-bullets'>
-            {job.bullets.map((b) => (
-              <li>{b}</li>
-            ))}
-          </ul>
-        </div>
-      ))
-    }
+            <ul class='mt-2 mb-0 list-disc space-y-1.5 ps-5 text-sm leading-relaxed text-foreground/90'>
+              {job.bullets.map((b) => (
+                <li>{b}</li>
+              ))}
+            </ul>
+          </article>
+        ))
+      }
+    </div>
   </section>
 
-  <section class='resume-section'>
-    <h2 class='resume-section-title'>专业技能</h2>
-    <ol class='resume-skills'>
+  <section class='resume-block mb-2' id='skills'>
+    <h2 class='mb-4 mt-0 text-xl font-medium text-foreground'>专业技能</h2>
+    <ol class='mb-0 list-decimal space-y-2 ps-5 text-sm leading-relaxed text-foreground/90'>
       {data.skills.map((s) => <li>{s}</li>)}
     </ol>
   </section>
-</article>
+</div>
 
 <style>
-  /* Fixed A4 geometry — identical for screen + print */
-  .resume-sheet {
-    --ink: #111;
-    --dim: #555;
-    --line: #bbb;
-    box-sizing: border-box;
-    width: 210mm;
-    min-height: 297mm;
-    margin: 0 auto;
-    padding: 14mm 16mm 16mm;
-    background: #fff !important;
-    color: var(--ink) !important;
-    font-family:
-      'PingFang SC',
-      'Hiragino Sans GB',
-      'Noto Sans SC',
-      'Microsoft YaHei',
-      'Source Han Sans SC',
-      system-ui,
-      sans-serif;
-    font-size: 10.5pt;
-    line-height: 1.55;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-  }
-
-  .resume-header {
-    text-align: center;
-    margin-bottom: 12pt;
-  }
-
-  .resume-name {
-    margin: 0 0 6pt;
-    font-size: 26pt;
-    font-weight: 700;
-    letter-spacing: 0.14em;
-    line-height: 1.2;
-    color: var(--ink);
-  }
-
-  .resume-contact,
-  .resume-meta {
-    margin: 2pt 0 0;
-    font-size: 10pt;
-    color: var(--dim);
-  }
-
-  .resume-section {
-    margin-top: 14pt;
-  }
-
-  .resume-section-title {
-    margin: 0 0 8pt;
-    padding-bottom: 4pt;
-    font-size: 12.5pt;
-    font-weight: 700;
-    color: var(--ink);
-    border-bottom: 1px solid var(--line);
-  }
-
-  .resume-list {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-  }
-
-  .resume-list > li + li {
-    margin-top: 8pt;
-  }
-
-  .resume-row {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 12pt;
-  }
-
-  .resume-row-main {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: 6pt 12pt;
-    min-width: 0;
-  }
-
-  .resume-strong {
-    font-weight: 700;
-    color: var(--ink);
-  }
-
-  .resume-dim {
-    color: var(--dim);
-  }
-
-  .resume-date {
-    flex-shrink: 0;
-    color: var(--dim);
-    font-variant-numeric: tabular-nums;
-    white-space: nowrap;
-  }
-
-  .resume-job + .resume-job {
-    margin-top: 12pt;
-  }
-
-  .resume-bullets {
-    margin: 4pt 0 0;
-    padding-left: 14pt;
-    color: var(--ink);
-  }
-
-  .resume-bullets li + li {
-    margin-top: 2pt;
-  }
-
-  .resume-skills {
-    margin: 0;
-    padding-left: 16pt;
-    color: var(--ink);
-  }
-
-  .resume-skills li + li {
-    margin-top: 4pt;
-  }
-
-  /* Screen-only frame (not part of print) */
-  @media screen {
-    .resume-sheet {
-      box-shadow: 0 8px 28px rgb(0 0 0 / 10%);
-      outline: 1px solid rgb(0 0 0 / 6%);
-    }
-  }
-
   @media print {
-    .resume-sheet {
-      box-shadow: none;
-      outline: none;
-      /* Keep same width/padding as screen so layout matches */
-      width: 210mm;
-      min-height: auto;
+    .resume-body {
+      color: #111 !important;
+    }
+    .resume-body :global(a) {
+      color: #111 !important;
+      text-decoration: none !important;
     }
   }
 </style>
