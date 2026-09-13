@@ -19,7 +19,8 @@
     "build:only": "astro build",
     "build:ci": "npm run douban && npm run tracks && astro build --force",
     "douban": "node scripts/fetch-douban.mjs",
-    "tracks": "node scripts/build-tracks.mjs"
+    "tracks": "node scripts/build-tracks.mjs",
+    "resume": "cd resume && uv tool run --from \"rendercv[full]\" rendercv render Liu_Yimin_CV.yaml && cp rendercv_output/*.pdf ../public/resume.pdf"
   },
   "dependencies": {
     "@astrojs/check": "0.9.9",

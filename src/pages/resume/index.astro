@@ -1,0 +1,24 @@
+---
+import PageLayout from '@/layouts/CommonPage.astro'
+---
+
+<PageLayout title='简历'>
+  <p>
+    内容源在仓库 <code>resume/Liu_Yimin_CV.yaml</code>。本地用 Docker / RenderCV 编辑生成 PDF；本页只展示产物。
+  </p>
+  <p class='not-prose flex flex-wrap gap-3 text-sm'>
+    <a class='rounded-lg border px-3 py-1.5 no-underline hover:border-primary' href='/resume.pdf' target='_blank' rel='noopener'>
+      打开 PDF
+    </a>
+    <a class='rounded-lg border px-3 py-1.5 no-underline hover:border-primary' href='/resume.pdf' download>
+      下载 PDF
+    </a>
+  </p>
+  <div class='not-prose mt-4 overflow-hidden rounded-2xl border bg-muted'>
+    <iframe
+      title='简历 PDF'
+      src='/resume.pdf'
+      class='h-[min(85vh,56rem)] w-full'
+    ></iframe>
+  </div>
+</PageLayout>

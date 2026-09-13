@@ -1,0 +1,16 @@
+# Local resume toolbox (open-source RenderCV).
+# Usage:
+#   docker compose -f docker-compose.resume.yml run --rm rendercv render Liu_Yimin_CV.yaml
+#   docker compose -f docker-compose.resume.yml run --rm rendercv render --watch Liu_Yimin_CV.yaml
+# Edit resume/Liu_Yimin_CV.yaml in any editor; watch rebuilds PDF/HTML/PNG into resume/output/
+services:
+  rendercv:
+    image: ghcr.io/rendercv/rendercv:latest
+    working_dir: /work
+    user: "${UID:-1000}:${GID:-1000}"
+    environment:
+      HOME: /tmp
+    volumes:
+      - ./resume:/work
+    # default command overridden by `run ... render ...`
+    entrypoint: ["rendercv"]

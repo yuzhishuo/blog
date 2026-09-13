@@ -35,6 +35,7 @@ export const theme: ThemeUserConfig = {
       { title: '项目', link: '/projects' },
       { title: '友链', link: '/links' },
       { title: '关于', link: '/about' },
+      { title: '简历', link: '/resume' },
       { title: '订阅', link: '/rss.xml' }
     ]
   },

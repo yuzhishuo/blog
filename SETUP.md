@@ -246,3 +246,12 @@ npm run build
 - GitHub: `https://github.com/yuzhishuo` · Pages: `https://yuzhishuo.github.io`
 - Dual-repo: source `blog` → product `yuzhishuo.github.io`
 - No push performed from this scaffold.
+
+
+## 简历（RenderCV + Docker，本地可编辑）
+
+- 数据：`resume/Liu_Yimin_CV.yaml`
+- 本地：`docker compose -f docker-compose.resume.yml run --rm rendercv render Liu_Yimin_CV.yaml`
+- 说明：`resume/README.md`
+- 说明：BOSS 直聘 PDF 无法开源 1:1 复刻，版式按同结构自定义逼近。
+
