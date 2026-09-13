@@ -12,6 +12,7 @@ import ReadingProgress from '@/components/ReadingProgress.astro'
 import PostNav from '@/components/PostNav.astro'
 import { Giscus } from '@/components/giscus'
 import { PageInfo } from '@/components/waline'
+import { getReadingTime } from 'astro-pure/utils'
 import type { BlogPost } from '@/lib/posts'
 
 interface Props {
@@ -46,22 +47,75 @@ const primaryColor =
   (heroImage && 'color' in heroImage ? heroImage.color : undefined) ??
   'hsl(var(--primary) / var(--un-text-opacity))'
 
-// Localize reading time: prefer theme minutesRead ("N min"), then words
+// Reading time: theme remark (local MD), else post.body (Notion), else words
 const minutesFromText = (() => {
   const raw = String(remarkPluginFrontmatter.minutesRead ?? '')
   const m = raw.match(/(\d+)/)
   return m ? Math.max(1, Number(m[1])) : 0
 })()
-const words = Number(remarkPluginFrontmatter.words ?? 0)
+const body =
+  typeof (post as { body?: unknown }).body === 'string'
+    ? ((post as { body: string }).body)
+    : ''
+const fromBody = body.trim() ? getReadingTime(body) : null
+const minutesFromBody = fromBody ? Math.max(1, Math.ceil(fromBody.minutes)) : 0
+const words = Number(remarkPluginFrontmatter.words ?? fromBody?.words ?? 0)
 const minutesFromWords = words > 0 ? Math.max(1, Math.ceil(words / 200)) : 0
-const minutes = minutesFromText || minutesFromWords || 1
+const minutes = minutesFromText || minutesFromBody || minutesFromWords || 1
 const heroFrontmatter = {
   ...remarkPluginFrontmatter,
-  minutesRead: `约 ${minutes} 分钟阅读`
+  minutesRead: `约 ${minutes} 分钟阅读`,
+  words
 }
 ---
 
 <ReadingProgress />
+<script is:inline>
+  // Recalc from rendered #content (Notion body may be empty at remark time)
+  ;(function () {
+    function isCJK(ch) {
+      const c = ch.charCodeAt(0)
+      return (c >= 0x4e00 && c <= 0x9fff) || (c >= 0x3400 && c <= 0x4dbf)
+    }
+    function wordsOf(text) {
+      let words = 0
+      let inWord = false
+      for (let i = 0; i < text.length; i++) {
+        const ch = text[i]
+        if (isCJK(ch)) {
+          words++
+          inWord = false
+        } else if (/\S/.test(ch)) {
+          if (!inWord) {
+            words++
+            inWord = true
+          }
+        } else inWord = false
+      }
+      return words
+    }
+    function sync() {
+      const article = document.getElementById('content')
+      if (!article) return
+      const n = Math.max(1, Math.ceil(wordsOf(article.innerText || '') / 200))
+      const label = '约 ' + n + ' 分钟阅读'
+      const info = document.querySelector('.article-info')
+      if (!info) return
+      const rows = info.querySelectorAll('.flex.items-center.gap-1')
+      rows.forEach((row) => {
+        const t = (row.textContent || '').trim()
+        if (/分钟阅读|\d+\s*min/i.test(t)) {
+          const svg = row.querySelector('svg')
+          row.textContent = ''
+          if (svg) row.appendChild(svg)
+          row.appendChild(document.createTextNode(' ' + label))
+        }
+      })
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', sync)
+    else sync()
+  })()
+</script>
 
 <PageLayout
   meta={{ articleDate, description, ogImage: socialImage, title }}
