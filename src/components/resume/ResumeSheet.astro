@@ -242,31 +242,76 @@ const { data, class: className } = Astro.props
     .cv {
       max-width: none;
       color: #111;
-      font-size: 10.5pt;
-      line-height: 1.55;
+      font-size: 9.2pt;
+      line-height: 1.35;
     }
     .cv-head {
-      border-bottom-color: #ccc;
-      margin-bottom: 12pt;
-      padding-bottom: 8pt;
+      border-bottom-color: #bbb;
+      margin-bottom: 7pt;
+      padding-bottom: 5pt;
+      text-align: center;
     }
     .cv-name {
-      font-size: 20pt;
-      letter-spacing: 0.16em;
+      margin-bottom: 3pt;
+      font-size: 16pt;
+      letter-spacing: 0.14em;
+    }
+    .cv-line {
+      margin-top: 1pt;
+      font-size: 8.5pt;
+    }
+    .cv-links {
+      margin-top: 2pt;
+      font-size: 8.5pt;
     }
     .cv-line,
     .cv-soft,
     .cv-date,
     .cv-soft.m0 {
-      color: #555;
+      color: #444;
+    }
+    .cv-sec {
+      margin-top: 7pt;
     }
     .cv-sec > h2 {
-      border-bottom-color: #ccc;
-      font-size: 11.5pt;
+      margin-bottom: 4pt;
+      padding-bottom: 2pt;
+      border-bottom-color: #bbb;
+      font-size: 10pt;
+    }
+    .cv-list {
+      gap: 3pt;
+    }
+    .cv-job + .cv-job {
+      margin-top: 5pt;
+    }
+    .cv-soft.m0 {
+      margin-top: 1pt;
+      font-size: 8.5pt;
+    }
+    .cv-date {
+      font-size: 8.5pt;
+    }
+    .cv-bullets {
+      margin-top: 2pt;
+      padding-inline-start: 12pt;
+    }
+    .cv-bullets li + li,
+    .cv-skills li + li {
+      margin-top: 1pt;
+    }
+    .cv-skills {
+      padding-inline-start: 12pt;
     }
     .cv-links a {
       color: #111;
       text-decoration: none;
+    }
+    .cv-sec,
+    .cv-job,
+    .cv-head {
+      break-inside: avoid;
+      page-break-inside: avoid;
     }
   }
 </style>
