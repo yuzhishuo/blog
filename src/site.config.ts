@@ -33,7 +33,6 @@ export const theme: ThemeUserConfig = {
     menu: [
       { title: '博客', link: '/blog' },
       { title: '项目', link: '/projects' },
-      { title: '地图', link: '/maps' },
       { title: '友链', link: '/links' },
       { title: '关于', link: '/about' },
       { title: '订阅', link: '/rss.xml' }
