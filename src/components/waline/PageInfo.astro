@@ -1,6 +1,8 @@
 ---
+/**
+ * Page meta line: 不蒜子 page PV (no Waline server).
+ */
 import { cn } from 'astro-pure/utils'
-import Pageview from '@/components/waline/Pageview.astro'
 
 interface Props {
   view?: boolean
@@ -8,23 +10,11 @@ interface Props {
   class?: string
 }
 
-const { view, comment, class: className, ...props } = Astro.props
-
-const path = Astro.url.pathname
+const { class: className, ...props } = Astro.props
 ---
 
-<div class={cn('text-base text-sm text-muted-foreground', className)} {...props}>
-  <span class='waline-pageview-count' data-path={path}></span> views
-  {
-    comment && (
-      <>
-        {' | '}
-        <a href='#waline'>
-          <span class='waline-comment-count' data-path={path} /> comments
-        </a>
-      </>
-    )
-  }
+<div class={cn('text-sm text-muted-foreground', className)} {...props}>
+  <span>
+    阅读 <span id='busuanzi_value_page_pv'>-</span> 次
+  </span>
 </div>
-
-{view && !comment && <Pageview />}

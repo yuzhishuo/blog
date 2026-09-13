@@ -1,0 +1,14 @@
+---
+import { cn } from 'astro-pure/utils'
+
+interface Props {
+  class?: string
+}
+
+const { class: className } = Astro.props
+---
+
+<p class={cn('not-prose mt-3 text-center text-xs text-muted-foreground', className)}>
+  本站总访问 <span id='busuanzi_value_site_pv'>-</span> ·
+  访客 <span id='busuanzi_value_site_uv'>-</span>
+</p>

@@ -197,7 +197,13 @@ npm run build
 
 
 
-## Umami analytics（隐私向访问统计）
+## 访问统计
+
+### 不蒜子（默认，免注册）
+
+已接入：文章「阅读 N 次」+ 页脚站点 PV/UV。脚本：`busuanzi.ibruce.info`，无需账号。
+
+### Umami analytics（可选，需注册）
 
 无 Cookie、开源。推荐 [Umami Cloud](https://cloud.umami.is/signup) Hobby 免费档。
 
@@ -215,7 +221,7 @@ npm run build
 - 本地：`npm i && npm run build:ci`（无 token 可构建）；开发：`npm run dev`
 - RSS：`/rss.xml`（双源；顶栏「订阅」与首页「订阅 RSS」）
 - 文章页分享：微信扫码 + 复制链接 / 知乎粘贴（`ShareChina`；主题 share 仅 weibo）
-- Umami：隐私统计（需 secret `PUBLIC_UMAMI_WEBSITE_ID`）
+- 不蒜子：免注册 PV/UV；可选 Umami（secret `PUBLIC_UMAMI_WEBSITE_ID`）
 - Giscus：已启用（`yuzhishuo/blog` Discussions / Announcements）；Waline 已关；若无评论请安装 Giscus App
 - Notion：正式 Integration 加载已接入；发布 = Status「已发布」→ Actions（含 15 分钟定时）→ Pages
 - 豆瓣：`npm run douban` → `src/data/douban.json`；首页「看过 · 玩过 · 听过」；`DOUBAN_USER_ID` 默认 153627368

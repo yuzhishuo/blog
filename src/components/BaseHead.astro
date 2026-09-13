@@ -5,6 +5,7 @@ import { prod } from 'astro-pure/server'
 import type { SiteMeta } from 'astro-pure/types'
 import config from 'virtual:config'
 import Analytics from '@/components/Analytics.astro'
+import Busuanzi from '@/components/Busuanzi.astro'
 
 type Props = SiteMeta
 
@@ -87,8 +88,10 @@ const socialImageURL = new URL(ogImage ? ogImage : config.socialCard, Astro.url)
 
 <meta content={Astro.generator} name='generator' />
 
-{/* Privacy analytics (Umami) — see PUBLIC_UMAMI_* */}
+{/* Optional Umami if PUBLIC_UMAMI_WEBSITE_ID is set */}
 <Analytics />
+{/* 不蒜子 — zero signup page/site counters */}
+<Busuanzi />
 
 {
   /* User script*/

@@ -1,0 +1,17 @@
+---
+/**
+ * 不蒜子 — no signup page/site counters.
+ * Script loads once in production; spans elsewhere fill in automatically.
+ */
+import { prod } from 'astro-pure/server'
+---
+
+{
+  prod && (
+    <script
+      is:inline
+      async
+      src='https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js'
+    ></script>
+  )
+}
