@@ -75,11 +75,11 @@ const { data, class: className } = Astro.props
             <span class='cv-date'> · {job.start}–{job.end}</span>
           </p>
           <p class='cv-soft m0'>{job.title}</p>
-          <ul class='cv-bullets'>
+          <div class='cv-bullets'>
             {job.bullets.map((b) => (
-              <li>{b}</li>
+              <p class='cv-bullet'>{b}</p>
             ))}
-          </ul>
+          </div>
         </div>
       ))
     }
@@ -87,9 +87,13 @@ const { data, class: className } = Astro.props
 
   <section class='cv-sec' id='skills'>
     <h2>专业技能</h2>
-    <ol class='cv-skills'>
-      {data.skills.map((s) => <li>{s}</li>)}
-    </ol>
+    <div class='cv-skills'>
+      {data.skills.map((s, i) => (
+        <p class='cv-skill'>
+          {i + 1}. {s}
+        </p>
+      ))}
+    </div>
   </section>
 </div>
 
@@ -204,54 +208,41 @@ const { data, class: className } = Astro.props
     margin-top: 1.15rem;
   }
 
-  .cv-bullets {
+  .cv-bullets,
+  .cv-skills {
     margin: 0.45rem 0 0;
-    padding: 0;
-    list-style: none;
+    padding: 0 !important;
+    list-style: none !important;
     text-align: left;
     color: hsl(var(--foreground) / 0.92);
   }
 
-  .cv-bullets li {
-    position: relative;
-    padding-inline-start: 0.9rem;
+  .cv-bullet,
+  .cv-skill {
+    margin: 0;
+    padding: 0 !important;
+    padding-inline-start: 0 !important;
     text-align: left;
+    text-indent: 0 !important;
   }
 
-  .cv-bullets li::before {
-    content: '–';
-    position: absolute;
-    inset-inline-start: 0;
+  .cv-bullet::before,
+  .cv-skill::before {
+    content: none !important;
   }
 
-  .cv-bullets li + li {
+  .cv-bullet + .cv-bullet {
     margin-top: 0.28rem;
   }
 
-  .cv-skills {
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    counter-reset: skill;
-    text-align: left;
-  }
-
-  .cv-skills li {
-    position: relative;
-    padding-inline-start: 1.35rem;
-    text-align: left;
-    counter-increment: skill;
-  }
-
-  .cv-skills li::before {
-    content: counter(skill) '.';
-    position: absolute;
-    inset-inline-start: 0;
-  }
-
-  .cv-skills li + li {
+  .cv-skill + .cv-skill {
     margin-top: 0.4rem;
   }
+
+  .cv-skills {
+    margin-top: 0;
+  }
+
 
   @media print {
     .cv {
@@ -311,22 +302,20 @@ const { data, class: className } = Astro.props
     .cv-date {
       font-size: 8.5pt;
     }
-    .cv-bullets {
-      margin-top: 2pt;
-      padding: 0;
-    }
-    .cv-bullets li {
-      padding-inline-start: 9pt;
-    }
-    .cv-bullets li + li,
-    .cv-skills li + li {
-      margin-top: 1pt;
-    }
+    .cv-bullets,
     .cv-skills {
-      padding: 0;
+      margin-top: 2pt;
+      padding: 0 !important;
     }
-    .cv-skills li {
-      padding-inline-start: 12pt;
+    .cv-bullet,
+    .cv-skill {
+      padding: 0 !important;
+      padding-inline-start: 0 !important;
+      text-indent: 0 !important;
+    }
+    .cv-bullet + .cv-bullet,
+    .cv-skill + .cv-skill {
+      margin-top: 1pt;
     }
     .cv-links a {
       color: #111;
