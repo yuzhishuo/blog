@@ -252,6 +252,6 @@ npm run build
 
 - 编辑器：Free Resume Generator（`ghcr.io/alidevhere/free-resume-generator`）
 - 启动：`docker compose -f docker-compose.resume.yml up -d` → http://localhost:3099
-- 数据：`resume/resume.json`；产物：`public/resume.pdf` → 页面 `/resume`
+- 数据：`resume/resume.json` → 页面 `/resume`（HTML 渲染，Ctrl+P 打印）
 - 说明：`resume/README.md`（直聘皮肤无法开源 1:1 复刻）
 
