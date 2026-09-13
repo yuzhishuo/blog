@@ -2,17 +2,17 @@
   "friends": [
     {
       "id_name": "cf-links",
-      "desc": "Common links included in circle friends",
+      "desc": "常用友链",
       "link_list": []
     },
     {
       "id_name": "inactive-links",
-      "desc": "Inactive or rule-breaking friends",
+      "desc": "失联或失效",
       "link_list": []
     },
     {
       "id_name": "special-links",
-      "desc": "Other special links",
+      "desc": "特别链接",
       "link_list": []
     }
   ]
