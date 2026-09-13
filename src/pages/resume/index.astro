@@ -4,7 +4,11 @@ import PageLayout from '@/layouts/CommonPage.astro'
 
 <PageLayout title='简历'>
   <p>
-    内容源在仓库 <code>resume/Liu_Yimin_CV.yaml</code>。本地用 Docker / RenderCV 编辑生成 PDF；本页只展示产物。
+    数据源：仓库 <code>resume/resume.json</code>。本机用 Docker 起可视化编辑器改内容，导出 PDF 后本页展示。
+  </p>
+  <p class='not-prose text-sm text-muted-foreground'>
+    启动：<code>docker compose -f docker-compose.resume.yml up -d</code> →
+    <a href='http://localhost:3099' target='_blank' rel='noopener'>localhost:3099</a>
   </p>
   <p class='not-prose flex flex-wrap gap-3 text-sm'>
     <a class='rounded-lg border px-3 py-1.5 no-underline hover:border-primary' href='/resume.pdf' target='_blank' rel='noopener'>
@@ -15,10 +19,6 @@ import PageLayout from '@/layouts/CommonPage.astro'
     </a>
   </p>
   <div class='not-prose mt-4 overflow-hidden rounded-2xl border bg-muted'>
-    <iframe
-      title='简历 PDF'
-      src='/resume.pdf'
-      class='h-[min(85vh,56rem)] w-full'
-    ></iframe>
+    <iframe title='简历 PDF' src='/resume.pdf' class='h-[min(85vh,56rem)] w-full'></iframe>
   </div>
 </PageLayout>

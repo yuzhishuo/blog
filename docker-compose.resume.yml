@@ -1,16 +1,37 @@
-# Local resume toolbox (open-source RenderCV).
-# Usage:
-#   docker compose -f docker-compose.resume.yml run --rm rendercv render Liu_Yimin_CV.yaml
-#   docker compose -f docker-compose.resume.yml run --rm rendercv render --watch Liu_Yimin_CV.yaml
-# Edit resume/Liu_Yimin_CV.yaml in any editor; watch rebuilds PDF/HTML/PNG into resume/output/
+# Visual resume editor (open-source Free Resume Generator)
+# https://github.com/alidevhere/Free-Resume-Generator
+#
+# Start (from blog repo root, on your Mac with Docker Desktop):
+#   docker compose -f docker-compose.resume.yml up -d
+# Open: http://localhost:3099
+# Stop:
+#   docker compose -f docker-compose.resume.yml down
+#
+# Workflow:
+#   1) Edit + live preview in the browser
+#   2) Export JSON → save as resume/resume.json (blog source of truth)
+#   3) Export / download PDF → replace public/resume.pdf (or ask me to sync)
+#
+# Optional CLI render (no UI) still available as service `rendercv`.
+
 services:
+  editor:
+    image: ghcr.io/alidevhere/free-resume-generator:latest
+    container_name: blog-resume-editor
+    ports:
+      - "3099:3000"
+    volumes:
+      - ./resume/editor-data:/app/backend/data
+    restart: unless-stopped
+
+  # Keep RenderCV as optional one-shot YAML→PDF (no web UI)
   rendercv:
     image: ghcr.io/rendercv/rendercv:latest
+    profiles: ["cli"]
     working_dir: /work
     user: "${UID:-1000}:${GID:-1000}"
     environment:
       HOME: /tmp
     volumes:
       - ./resume:/work
-    # default command overridden by `run ... render ...`
     entrypoint: ["rendercv"]

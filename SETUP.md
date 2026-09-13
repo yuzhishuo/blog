@@ -248,10 +248,10 @@ npm run build
 - No push performed from this scaffold.
 
 
-## 简历（RenderCV + Docker，本地可编辑）
+## 简历（可视化 Docker 编辑）
 
-- 数据：`resume/Liu_Yimin_CV.yaml`
-- 本地：`docker compose -f docker-compose.resume.yml run --rm rendercv render Liu_Yimin_CV.yaml`
-- 说明：`resume/README.md`
-- 说明：BOSS 直聘 PDF 无法开源 1:1 复刻，版式按同结构自定义逼近。
+- 编辑器：Free Resume Generator（`ghcr.io/alidevhere/free-resume-generator`）
+- 启动：`docker compose -f docker-compose.resume.yml up -d` → http://localhost:3099
+- 数据：`resume/resume.json`；产物：`public/resume.pdf` → 页面 `/resume`
+- 说明：`resume/README.md`（直聘皮肤无法开源 1:1 复刻）
 

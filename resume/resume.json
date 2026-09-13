@@ -1,0 +1,67 @@
+{
+  "version": 1,
+  "template": "enhanced-faang-resume",
+  "name": "刘轶民",
+  "title": "电子架构开发工程师",
+  "phone": "+86 18630977388",
+  "email": "yimin.muduo@outlook.com",
+  "linkedin": "",
+  "github": "yuzhishuo",
+  "website": "yuzhishuo.github.io",
+  "summary": "4年汽车电子 / 中间件经验 · 求职意向：电子架构开发工程师 · 期望城市：上海。熟悉 AUTOSAR SOME/IP、DoIP/UDS 诊断与服务化实践。",
+  "skills": [
+    {
+      "title": "协议与中间件",
+      "items": ["SOME/IP", "SD", "DoIP", "UDS/Dcm", "DoCan", "SecOC", "AUTOSAR CP"]
+    },
+    {
+      "title": "平台与工具",
+      "items": ["Linux", "Android 分析工具", "OTA", "ISO 26262-6", "IVI 工具链"]
+    }
+  ],
+  "experience": [
+    {
+      "company": "上海极氪蓝色新能源技术有限公司",
+      "title": "实时操作系统开发 / 中间件开发工程师",
+      "location": "上海",
+      "start": "2023.11",
+      "end": "至今",
+      "bullets": [
+        "负责 DoIP（A 核/M 核）/ UDS（Dcm）/ DoCan 协议栈开发（两次量产），维护 SD / SecOC。",
+        "主导自研 AUTOSAR CP 平台中基于 CAN / 以太总线的诊断功能开发与维护；熟悉极氪 / 吉利诊断需求，推动非标准能力纳入上下游模块。",
+        "了解中央网关、相关域控、座椅、油泵等控制器底软与子系统诊断需求。"
+      ]
+    },
+    {
+      "company": "上海商泰汽车信息系统有限公司",
+      "title": "中间件研发工程师 / 软件工程师",
+      "location": "上海",
+      "start": "2022.06",
+      "end": "2023.11",
+      "bullets": [
+        "SOME/IP 协议栈开发（四次量产）；熟悉 AUTOSAR SOME/IP/SD，按规范实现协议功能。",
+        "按客户与市场需求扩展协议栈特性（网卡监听 SOME/IP-TP、E2E、序列化/反序列化）并做性能优化。",
+        "维护基于 SOME/IP 的场景引擎（座舱 / 车身：门锁、车窗、雨刷等）；维护 DoIP A 核协议栈。"
+      ]
+    }
+  ],
+  "openSourceContributions": [],
+  "projects": [],
+  "certifications": [],
+  "education": [
+    {
+      "school": "东北电力大学",
+      "degree": "硕士 · 计算机科学与技术",
+      "location": "吉林",
+      "start": "2019",
+      "end": "2022"
+    },
+    {
+      "school": "安徽理工大学",
+      "degree": "本科 · 医学检验技术",
+      "location": "安徽",
+      "start": "2014",
+      "end": "2018"
+    }
+  ]
+}
