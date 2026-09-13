@@ -14,7 +14,7 @@ const { data, class: className } = Astro.props
 ---
 
 <div class={cn('cv not-prose', className)} id='resume-sheet'>
-  <header class='cv-head'>
+  <div class='cv-head'>
     <h1 class='cv-name'>{data.name}</h1>
     <p class='cv-line'>
       {[data.age, data.phone, data.email].filter(Boolean).join('  ·  ')}
@@ -43,7 +43,7 @@ const { data, class: className } = Astro.props
         </p>
       )
     }
-  </header>
+  </div>
 
   <section class='cv-sec' id='education'>
     <h2>教育经历</h2>
