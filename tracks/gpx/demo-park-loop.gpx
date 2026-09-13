@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="pure-blog-demo">
+  <trk>
+    <name>示例公园绕圈</name>
+    <trkseg>
+      <trkpt lat="39.9990" lon="116.2750"><time>2026-09-01T07:00:00Z</time></trkpt>
+      <trkpt lat="39.9995" lon="116.2760"><time>2026-09-01T07:02:00Z</time></trkpt>
+      <trkpt lat="40.0000" lon="116.2770"><time>2026-09-01T07:04:00Z</time></trkpt>
+      <trkpt lat="39.9996" lon="116.2780"><time>2026-09-01T07:06:00Z</time></trkpt>
+      <trkpt lat="39.9990" lon="116.2770"><time>2026-09-01T07:08:00Z</time></trkpt>
+      <trkpt lat="39.9990" lon="116.2750"><time>2026-09-01T07:10:00Z</time></trkpt>
+    </trkseg>
+  </trk>
+</gpx>

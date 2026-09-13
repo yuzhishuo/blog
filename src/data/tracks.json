@@ -1,0 +1,22 @@
+{
+  "updatedAt": "2026-09-13T05:53:05.540Z",
+  "count": 1,
+  "tracks": [
+    {
+      "id": "demo-park-loop-84944847e8",
+      "name": "示例公园绕圈",
+      "source": "demo-park-loop.gpx",
+      "geojson": "/tracks/demo-park-loop-84944847e8.geojson",
+      "distanceKm": 0.58,
+      "pointCount": 6,
+      "startTime": "2026-09-01T07:00:00Z",
+      "endTime": "2026-09-01T07:10:00Z",
+      "bbox": [
+        116.275,
+        39.999,
+        116.278,
+        40
+      ]
+    }
+  ]
+}

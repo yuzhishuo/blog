@@ -1,0 +1,28 @@
+---
+import PageLayout from '@/layouts/CommonPage.astro'
+import TracksMap from '@/components/maps/TracksMap.astro'
+import catalog from '@/data/tracks.json'
+import type { TracksCatalog } from '@/lib/tracks'
+
+const data = catalog as TracksCatalog
+const tracks = data.tracks || []
+const totalKm = Math.round(tracks.reduce((s, t) => s + (t.distanceKm || 0), 0) * 10) / 10
+---
+
+<PageLayout title='运动地图'>
+  <p>
+    户外运动轨迹自动汇总。将小米 / 苹果导出的 <code>GPX</code> 放入仓库
+    <code>tracks/gpx/</code>，构建与 CI 会自动生成此页。
+  </p>
+  <p class='text-sm text-muted-foreground'>
+    当前 {tracks.length} 条 · 合计约 {totalKm} km
+    {
+      data.updatedAt && (
+        <>
+          · 更新于 {new Date(data.updatedAt).toLocaleString('zh-CN')}
+        </>
+      )
+    }
+  </p>
+  <TracksMap tracks={tracks} />
+</PageLayout>

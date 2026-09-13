@@ -215,12 +215,26 @@ npm run build
 
 组件：`src/components/Analytics.astro`
 
+
+
+## 运动地图（自动）
+
+1. 导出户外 GPX（小米运动健康：详情 → `⋯` → 导出 → `.gpx`）
+2. 文件放入 `tracks/gpx/`
+3. `npm run tracks` 或 push → CI（`build:ci` 已含）自动生成：
+   - `src/data/tracks.json`
+   - `public/tracks/*.geojson`
+4. 页面：https://yuzhishuo.github.io/maps/
+
+无稳定官方 GPS API：手机导出仍是人工一步；入库之后全自动。
+
 ## 中文摘要
 
 - 项目路径：`/workspace/pure-blog`（agent 盒子上持久，需你自行 push 到 GitHub）
 - 本地：`npm i && npm run build:ci`（无 token 可构建）；开发：`npm run dev`
 - RSS：`/rss.xml`（双源；顶栏「订阅」与首页「订阅 RSS」）
 - 文章页分享：微信扫码 + 复制链接 / 知乎粘贴（`ShareChina`；主题 share 仅 weibo）
+- 运动地图：`tracks/gpx/*.gpx` → `/maps`（构建自动）
 - 不蒜子：免注册 PV/UV；可选 Umami（secret `PUBLIC_UMAMI_WEBSITE_ID`）
 - Giscus：已启用（`yuzhishuo/blog` Discussions / Announcements）；Waline 已关；若无评论请安装 Giscus App
 - Notion：正式 Integration 加载已接入；发布 = Status「已发布」→ Actions（含 15 分钟定时）→ Pages

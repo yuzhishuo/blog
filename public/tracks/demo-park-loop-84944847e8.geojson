@@ -1,0 +1,1 @@
+{"type":"Feature","properties":{"id":"demo-park-loop-84944847e8","name":"示例公园绕圈","distanceKm":0.58,"startTime":"2026-09-01T07:00:00Z","endTime":"2026-09-01T07:10:00Z","source":"demo-park-loop.gpx"},"geometry":{"type":"LineString","coordinates":[[116.275,39.999],[116.276,39.9995],[116.277,40],[116.278,39.9996],[116.277,39.999],[116.275,39.999]]}}

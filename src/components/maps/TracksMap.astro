@@ -1,0 +1,104 @@
+---
+import type { TrackMeta } from '@/lib/tracks'
+
+interface Props {
+  tracks: TrackMeta[]
+}
+
+const { tracks } = Astro.props
+const initial = tracks[0] ?? null
+---
+
+<div class='tracks-map not-prose' data-tracks={JSON.stringify(tracks)}>
+  <div class='mb-3 flex flex-wrap items-center gap-2'>
+    <label class='text-sm text-muted-foreground' for='track-select'>轨迹</label>
+    <select
+      id='track-select'
+      class='rounded-lg border bg-background px-2 py-1.5 text-sm'
+      disabled={tracks.length === 0}
+    >
+      {
+        tracks.length === 0 ? (
+          <option>暂无轨迹</option>
+        ) : (
+          tracks.map((t) => (
+            <option value={t.id} selected={initial?.id === t.id}>
+              {t.name}（{t.distanceKm} km）
+            </option>
+          ))
+        )
+      }
+    </select>
+    <span id='track-meta' class='text-xs text-muted-foreground'></span>
+  </div>
+  <div
+    id='tracks-leaflet'
+    class='h-[min(70vh,32rem)] w-full overflow-hidden rounded-2xl border bg-muted'
+  >
+  </div>
+  {
+    tracks.length === 0 && (
+      <p class='mt-3 text-sm text-muted-foreground'>
+        把 GPX 放到仓库 <code>tracks/gpx/</code>，push 后 CI 会自动更新此页。
+      </p>
+    )
+  }
+</div>
+
+<link
+  rel='stylesheet'
+  href='https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css'
+  integrity='sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY='
+  crossorigin=''
+/>
+<script is:inline src='https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js'
+  integrity='sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo='
+  crossorigin=''></script>
+
+<script is:inline>
+  function initTracksMap() {
+    const root = document.querySelector('.tracks-map')
+    const el = document.getElementById('tracks-leaflet')
+    const select = document.getElementById('track-select')
+    const meta = document.getElementById('track-meta')
+    if (!root || !el || !window.L) return
+
+    const tracks = JSON.parse(root.getAttribute('data-tracks') || '[]')
+    if (!tracks.length) return
+
+    const map = window.L.map(el, { scrollWheelZoom: true })
+    window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; OpenStreetMap'
+    }).addTo(map)
+
+    let layer = null
+
+    async function show(id) {
+      const t = tracks.find((x) => x.id === id) || tracks[0]
+      if (!t) return
+      if (meta) {
+        const when = t.startTime ? new Date(t.startTime).toLocaleString('zh-CN') : ''
+        meta.textContent = [when, t.distanceKm + ' km', t.pointCount + ' 点'].filter(Boolean).join(' · ')
+      }
+      const res = await fetch(t.geojson)
+      const geo = await res.json()
+      if (layer) map.removeLayer(layer)
+      layer = window.L.geoJSON(geo, {
+        style: { color: '#517d94', weight: 4, opacity: 0.9 }
+      }).addTo(map)
+      try {
+        map.fitBounds(layer.getBounds(), { padding: [24, 24] })
+      } catch {}
+    }
+
+    select?.addEventListener('change', () => show(select.value))
+    show(select?.value || tracks[0].id)
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initTracksMap)
+  } else {
+    initTracksMap()
+  }
+</script>
