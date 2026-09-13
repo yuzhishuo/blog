@@ -1,6 +1,6 @@
 ---
 /**
- * Clean editorial resume — minimal, consistent, blog-themed.
+ * Clean editorial resume — fully left-aligned.
  */
 import type { ResumeData } from '@/lib/resume'
 import { cn } from 'astro-pure/utils'
@@ -50,19 +50,15 @@ const { data, class: className } = Astro.props
     <ul class='cv-list'>
       {
         data.education.map((ed) => (
-          <li class='cv-row'>
-            <div>
-              <p class='cv-strong'>
-                {ed.school}
-                <span class='cv-soft'>
-                  {' '}
-                  {ed.degree} · {ed.major}
-                </span>
-              </p>
-            </div>
-            <span class='cv-date'>
-              {ed.start}–{ed.end}
-            </span>
+          <li class='cv-item'>
+            <p class='cv-strong'>
+              {ed.school}
+              <span class='cv-soft'>
+                {' '}
+                {ed.degree} · {ed.major}
+              </span>
+              <span class='cv-date'> · {ed.start}–{ed.end}</span>
+            </p>
           </li>
         ))
       }
@@ -74,15 +70,11 @@ const { data, class: className } = Astro.props
     {
       data.experience.map((job) => (
         <div class='cv-job'>
-          <div class='cv-row'>
-            <div>
-              <p class='cv-strong'>{job.company}</p>
-              <p class='cv-soft m0'>{job.title}</p>
-            </div>
-            <span class='cv-date'>
-              {job.start}–{job.end}
-            </span>
-          </div>
+          <p class='cv-strong'>
+            {job.company}
+            <span class='cv-date'> · {job.start}–{job.end}</span>
+          </p>
+          <p class='cv-soft m0'>{job.title}</p>
           <ul class='cv-bullets'>
             {job.bullets.map((b) => (
               <li>{b}</li>
@@ -104,14 +96,15 @@ const { data, class: className } = Astro.props
 <style>
   .cv {
     max-width: 42rem;
-    margin: 0 auto;
+    margin: 0;
+    text-align: left;
     color: hsl(var(--foreground));
     font-size: 0.95rem;
     line-height: 1.7;
   }
 
   .cv-head {
-    text-align: center;
+    text-align: left;
     padding-bottom: 1.25rem;
     margin-bottom: 1.75rem;
     border-bottom: 1px solid hsl(var(--border));
@@ -121,19 +114,22 @@ const { data, class: className } = Astro.props
     margin: 0 0 0.65rem;
     font-size: 2rem;
     font-weight: 600;
-    letter-spacing: 0.18em;
+    letter-spacing: 0.08em;
     line-height: 1.25;
+    text-align: left;
   }
 
   .cv-line {
     margin: 0.2rem 0 0;
     font-size: 0.875rem;
     color: hsl(var(--muted-foreground));
+    text-align: left;
   }
 
   .cv-links {
     margin: 0.55rem 0 0;
     font-size: 0.875rem;
+    text-align: left;
   }
 
   .cv-links a {
@@ -152,6 +148,7 @@ const { data, class: className } = Astro.props
 
   .cv-sec {
     margin-top: 1.6rem;
+    text-align: left;
   }
 
   .cv-sec > h2 {
@@ -160,6 +157,7 @@ const { data, class: className } = Astro.props
     font-size: 1rem;
     font-weight: 600;
     letter-spacing: 0.06em;
+    text-align: left;
     border-bottom: 1px solid hsl(var(--border));
   }
 
@@ -172,16 +170,15 @@ const { data, class: className } = Astro.props
     gap: 0.75rem;
   }
 
-  .cv-row {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 1rem;
+  .cv-item,
+  .cv-job {
+    text-align: left;
   }
 
   .cv-strong {
     margin: 0;
     font-weight: 600;
+    text-align: left;
   }
 
   .cv-soft {
@@ -197,11 +194,10 @@ const { data, class: className } = Astro.props
   }
 
   .cv-date {
-    flex-shrink: 0;
-    font-size: 0.85rem;
+    font-weight: 400;
+    font-size: 0.9em;
     color: hsl(var(--muted-foreground));
     font-variant-numeric: tabular-nums;
-    white-space: nowrap;
   }
 
   .cv-job + .cv-job {
@@ -211,6 +207,7 @@ const { data, class: className } = Astro.props
   .cv-bullets {
     margin: 0.45rem 0 0;
     padding-inline-start: 1.15rem;
+    text-align: left;
     color: hsl(var(--foreground) / 0.92);
   }
 
@@ -221,40 +218,33 @@ const { data, class: className } = Astro.props
   .cv-skills {
     margin: 0;
     padding-inline-start: 1.2rem;
+    text-align: left;
   }
 
   .cv-skills li + li {
     margin-top: 0.4rem;
   }
 
-  @media (max-width: 560px) {
-    .cv-row {
-      flex-direction: column;
-      gap: 0.15rem;
-    }
-    .cv-name {
-      letter-spacing: 0.12em;
-      font-size: 1.75rem;
-    }
-  }
-
   @media print {
     .cv {
       max-width: none;
+      margin: 0;
       color: #111;
       font-size: 9.2pt;
       line-height: 1.35;
+      text-align: left;
     }
     .cv-head {
       border-bottom-color: #bbb;
       margin-bottom: 7pt;
       padding-bottom: 5pt;
-      text-align: center;
+      text-align: left;
     }
     .cv-name {
       margin-bottom: 3pt;
       font-size: 16pt;
-      letter-spacing: 0.14em;
+      letter-spacing: 0.08em;
+      text-align: left;
     }
     .cv-line {
       margin-top: 1pt;
@@ -278,6 +268,7 @@ const { data, class: className } = Astro.props
       padding-bottom: 2pt;
       border-bottom-color: #bbb;
       font-size: 10pt;
+      text-align: left;
     }
     .cv-list {
       gap: 3pt;
