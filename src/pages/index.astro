@@ -74,7 +74,22 @@ if (!images[imagePath])
                 </li>
               ))}
             </ul>
-            <Button title='更多文章' class='w-fit self-end' href='/blog' variant='ahead' />
+            <div class='flex flex-wrap items-center justify-end gap-2'>
+              <Button title='订阅 RSS' class='w-fit' href='/rss.xml'>
+                <Icon name='rss' class='size-4' slot='before' />
+              </Button>
+              <Button title='更多文章' class='w-fit' href='/blog' variant='ahead' />
+            </div>
+          </Section>
+        )
+      }
+      {
+        allPostsByDate.length === 0 && (
+          <Section title='订阅'>
+            <p class='text-muted-foreground'>用 RSS 订阅本站更新。</p>
+            <Button title='订阅 RSS' class='w-fit self-end' href='/rss.xml'>
+              <Icon name='rss' class='size-4' slot='before' />
+            </Button>
           </Section>
         )
       }

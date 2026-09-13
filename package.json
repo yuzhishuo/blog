@@ -17,7 +17,7 @@
     "clean": "rm -rf .astro .vercel dist",
     "cache:avatars": "tsx preset/scripts/cacheAvatars.ts",
     "build:only": "astro build",
-    "build:ci": "npm run douban && astro build",
+    "build:ci": "npm run douban && astro build --force",
     "douban": "node scripts/fetch-douban.mjs"
   },
   "dependencies": {

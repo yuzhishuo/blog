@@ -34,7 +34,8 @@ export const theme: ThemeUserConfig = {
       { title: '博客', link: '/blog' },
       { title: '项目', link: '/projects' },
       { title: '友链', link: '/links' },
-      { title: '关于', link: '/about' }
+      { title: '关于', link: '/about' },
+      { title: '订阅', link: '/rss.xml' }
     ]
   },
 
@@ -50,7 +51,7 @@ export const theme: ThemeUserConfig = {
     credits: true,
     social: [
       { icon: 'github', label: 'GitHub', href: 'https://github.com/yuzhishuo' },
-      { icon: 'rss', label: 'RSS', href: '/rss.xml' }
+      { icon: 'rss', label: 'RSS 订阅', href: '/rss.xml' }
     ]
   },
 
@@ -60,7 +61,7 @@ export const theme: ThemeUserConfig = {
       properties: { style: 'user-select:none' }
     },
     blogPageSize: 8,
-    share: ['weibo', 'x', 'bluesky']
+    share: ['weibo']
   }
 }
 

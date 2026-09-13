@@ -56,7 +56,7 @@ Feed is enabled via `src/pages/rss.xml.ts` (`@astrojs/rss`).
 
 - **Path:** `/rss.xml`
 - Full URL (after deploy): `https://yuzhishuo.github.io/rss.xml`
-- Linked in the footer social icons.
+- Linked in the header menu（订阅）, homepage（订阅 RSS）, and footer social（RSS 订阅）.
 - Items include **local markdown + Notion** posts when `NOTION_TOKEN` is set.
 
 ---
@@ -105,6 +105,7 @@ Status is a **SELECT** (options: 草稿 / 已发布 / 下架) — do **not** use
 2. GitHub Actions builds on push, **every 15 minutes**, or `workflow_dispatch`
 3. Loader pulls published pages at build time → static HTML on Pages
 4. RSS regenerates from merged listings; Giscus comments attach by pathname
+5. 拖到「已发布」后约 15 分钟内站点会更新（GitHub 调度偶发延迟）。
 
 ---
 
@@ -189,7 +190,8 @@ npm run build
 
 - 项目路径：`/workspace/pure-blog`（agent 盒子上持久，需你自行 push 到 GitHub）
 - 本地：`npm i && npm run build:ci`（无 token 可构建）；开发：`npm run dev`
-- RSS：`/rss.xml`（双源）
+- RSS：`/rss.xml`（双源；顶栏「订阅」与首页「订阅 RSS」）
+- 文章页分享：微信扫码 + 复制链接 / 知乎粘贴（`ShareChina`；主题 share 仅 weibo）
 - Giscus：配置项已留空（TODO），Waline 已关
 - Notion：正式 Integration 加载已接入；发布 = Status「已发布」→ Actions（含 15 分钟定时）→ Pages
 - 豆瓣：`npm run douban` → `src/data/douban.json`；首页「看过 · 玩过 · 听过」；`DOUBAN_USER_ID` 默认 153627368

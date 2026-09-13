@@ -191,6 +191,11 @@ export function createNotionBlogLoader(): Loader {
   return {
     name: 'notion-blog',
     async load(context: LoaderContext) {
+      // Always refresh Notion at build. The upstream loader skips pages when
+      // store digest === last_edited_time; CI / build:ci must not reuse stale entries.
+      context.store.clear()
+      context.logger.info('Notion store cleared — full refresh (no stale skip)')
+
       const originalParseData = context.parseData.bind(context)
       const originalSet = context.store.set.bind(context.store)
 

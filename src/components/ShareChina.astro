@@ -1,0 +1,113 @@
+---
+/**
+ * WeChat / Zhihu share for blog posts.
+ * Theme `share` schema only allows weibo/x/bluesky — this is a custom add-on.
+ */
+import { Icon } from 'astro-pure/user'
+import { cn } from 'astro-pure/utils'
+
+interface Props {
+  url?: string
+  class?: string
+}
+
+const { class: className } = Astro.props
+const shareUrl = Astro.props.url ?? new URL(Astro.url.pathname, Astro.site).href
+const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(shareUrl)}`
+---
+
+<section
+  class={cn(
+    'not-prose share-china flex flex-col gap-3 rounded-xl border px-3 py-3 sm:px-4 sm:py-4',
+    className
+  )}
+  data-share-url={shareUrl}
+  aria-label='分享到微信与知乎'
+>
+  <div class='flex items-center gap-2 font-medium'>
+    <Icon name='link' class='size-5 text-muted-foreground' />
+    <span>分享到微信 / 知乎</span>
+  </div>
+
+  <p class='text-sm text-muted-foreground'>
+    复制链接后可粘贴到微信或知乎。微信也可扫码打开本文。
+  </p>
+
+  <div class='flex flex-wrap items-center gap-2'>
+    <button
+      type='button'
+      class='inline-flex items-center gap-1.5 rounded-lg border bg-muted px-3 py-1.5 text-sm text-foreground transition-colors hover:text-primary'
+      data-action='copy'
+    >
+      <Icon name='link' class='size-4' />
+      复制链接
+    </button>
+    <button
+      type='button'
+      class='inline-flex items-center gap-1.5 rounded-lg border bg-muted px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:text-primary'
+      data-action='zhihu'
+    >
+      <Icon name='zhihu' class='size-4' />
+      知乎
+    </button>
+    <a
+      href='https://www.zhihu.com'
+      target='_blank'
+      rel='noopener noreferrer'
+      class='text-sm text-muted-foreground no-underline hover:text-primary'
+    >
+      打开知乎 ↗
+    </a>
+  </div>
+
+  <div class='flex items-start gap-3 rounded-lg border bg-muted p-3'>
+    <img
+      src={qrSrc}
+      width='160'
+      height='160'
+      alt='微信扫码打开本文'
+      class='rounded-md border bg-white p-1'
+      loading='lazy'
+    />
+    <div class='flex flex-col gap-1 text-sm text-muted-foreground'>
+      <span class='font-medium text-foreground'>微信扫码打开</span>
+      <span>使用微信扫一扫打开本篇文章。</span>
+    </div>
+  </div>
+</section>
+
+<script>
+  function bindShareChina(root: Element) {
+    const url = (root as HTMLElement).dataset.shareUrl || window.location.href
+
+    function toast(message: string) {
+      document.dispatchEvent(new CustomEvent('toast', { detail: { message } }))
+    }
+
+    async function copy(message: string) {
+      try {
+        await navigator.clipboard.writeText(url)
+      } catch {
+        const ta = document.createElement('textarea')
+        ta.value = url
+        ta.setAttribute('readonly', '')
+        ta.style.position = 'fixed'
+        ta.style.left = '-9999px'
+        document.body.appendChild(ta)
+        ta.select()
+        document.execCommand('copy')
+        ta.remove()
+      }
+      toast(message)
+    }
+
+    root.querySelector('[data-action="copy"]')?.addEventListener('click', () => {
+      void copy('链接已复制')
+    })
+    root.querySelector('[data-action="zhihu"]')?.addEventListener('click', () => {
+      void copy('链接已复制，可粘贴到知乎')
+    })
+  }
+
+  document.querySelectorAll('.share-china').forEach(bindShareChina)
+</script>
