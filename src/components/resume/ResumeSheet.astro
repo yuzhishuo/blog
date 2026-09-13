@@ -206,9 +206,22 @@ const { data, class: className } = Astro.props
 
   .cv-bullets {
     margin: 0.45rem 0 0;
-    padding-inline-start: 1.15rem;
+    padding: 0;
+    list-style: none;
     text-align: left;
     color: hsl(var(--foreground) / 0.92);
+  }
+
+  .cv-bullets li {
+    position: relative;
+    padding-inline-start: 0.9rem;
+    text-align: left;
+  }
+
+  .cv-bullets li::before {
+    content: '–';
+    position: absolute;
+    inset-inline-start: 0;
   }
 
   .cv-bullets li + li {
@@ -217,8 +230,23 @@ const { data, class: className } = Astro.props
 
   .cv-skills {
     margin: 0;
-    padding-inline-start: 1.2rem;
+    padding: 0;
+    list-style: none;
+    counter-reset: skill;
     text-align: left;
+  }
+
+  .cv-skills li {
+    position: relative;
+    padding-inline-start: 1.35rem;
+    text-align: left;
+    counter-increment: skill;
+  }
+
+  .cv-skills li::before {
+    content: counter(skill) '.';
+    position: absolute;
+    inset-inline-start: 0;
   }
 
   .cv-skills li + li {
@@ -285,13 +313,19 @@ const { data, class: className } = Astro.props
     }
     .cv-bullets {
       margin-top: 2pt;
-      padding-inline-start: 12pt;
+      padding: 0;
+    }
+    .cv-bullets li {
+      padding-inline-start: 9pt;
     }
     .cv-bullets li + li,
     .cv-skills li + li {
       margin-top: 1pt;
     }
     .cv-skills {
+      padding: 0;
+    }
+    .cv-skills li {
       padding-inline-start: 12pt;
     }
     .cv-links a {
