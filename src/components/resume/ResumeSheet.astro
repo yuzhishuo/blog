@@ -1,0 +1,220 @@
+---
+/**
+ * Chinese CV sheet — screen preview and Ctrl+P use the SAME layout.
+ */
+import type { ResumeData } from '@/lib/resume'
+
+interface Props {
+  data: ResumeData
+}
+
+const { data } = Astro.props
+const contact = [data.age, data.phone, data.email].filter(Boolean).join('  |  ')
+const meta = [data.years, `求职意向：${data.intent}`, `期望城市：${data.city}`]
+  .filter(Boolean)
+  .join('  |  ')
+---
+
+<article class='resume-sheet' id='resume-sheet'>
+  <header class='resume-header'>
+    <h1 class='resume-name'>{data.name}</h1>
+    <p class='resume-contact'>{contact}</p>
+    <p class='resume-meta'>{meta}</p>
+  </header>
+
+  <section class='resume-section'>
+    <h2 class='resume-section-title'>教育经历</h2>
+    <ul class='resume-list'>
+      {
+        data.education.map((ed) => (
+          <li class='resume-row'>
+            <div class='resume-row-main'>
+              <span class='resume-strong'>{ed.school}</span>
+              <span class='resume-dim'>{ed.degree}</span>
+              <span class='resume-dim'>{ed.major}</span>
+            </div>
+            <span class='resume-date'>
+              {ed.start}-{ed.end}
+            </span>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  <section class='resume-section'>
+    <h2 class='resume-section-title'>工作经历</h2>
+    {
+      data.experience.map((job) => (
+        <div class='resume-job'>
+          <div class='resume-row'>
+            <div class='resume-row-main'>
+              <span class='resume-strong'>{job.company}</span>
+              <span class='resume-dim'>{job.title}</span>
+            </div>
+            <span class='resume-date'>
+              {job.start}-{job.end}
+            </span>
+          </div>
+          <ul class='resume-bullets'>
+            {job.bullets.map((b) => (
+              <li>{b}</li>
+            ))}
+          </ul>
+        </div>
+      ))
+    }
+  </section>
+
+  <section class='resume-section'>
+    <h2 class='resume-section-title'>专业技能</h2>
+    <ol class='resume-skills'>
+      {data.skills.map((s) => <li>{s}</li>)}
+    </ol>
+  </section>
+</article>
+
+<style>
+  /* Fixed A4 geometry — identical for screen + print */
+  .resume-sheet {
+    --ink: #111;
+    --dim: #555;
+    --line: #bbb;
+    box-sizing: border-box;
+    width: 210mm;
+    min-height: 297mm;
+    margin: 0 auto;
+    padding: 14mm 16mm 16mm;
+    background: #fff !important;
+    color: var(--ink) !important;
+    font-family:
+      'PingFang SC',
+      'Hiragino Sans GB',
+      'Noto Sans SC',
+      'Microsoft YaHei',
+      'Source Han Sans SC',
+      system-ui,
+      sans-serif;
+    font-size: 10.5pt;
+    line-height: 1.55;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .resume-header {
+    text-align: center;
+    margin-bottom: 12pt;
+  }
+
+  .resume-name {
+    margin: 0 0 6pt;
+    font-size: 26pt;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    line-height: 1.2;
+    color: var(--ink);
+  }
+
+  .resume-contact,
+  .resume-meta {
+    margin: 2pt 0 0;
+    font-size: 10pt;
+    color: var(--dim);
+  }
+
+  .resume-section {
+    margin-top: 14pt;
+  }
+
+  .resume-section-title {
+    margin: 0 0 8pt;
+    padding-bottom: 4pt;
+    font-size: 12.5pt;
+    font-weight: 700;
+    color: var(--ink);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .resume-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .resume-list > li + li {
+    margin-top: 8pt;
+  }
+
+  .resume-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12pt;
+  }
+
+  .resume-row-main {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 6pt 12pt;
+    min-width: 0;
+  }
+
+  .resume-strong {
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  .resume-dim {
+    color: var(--dim);
+  }
+
+  .resume-date {
+    flex-shrink: 0;
+    color: var(--dim);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .resume-job + .resume-job {
+    margin-top: 12pt;
+  }
+
+  .resume-bullets {
+    margin: 4pt 0 0;
+    padding-left: 14pt;
+    color: var(--ink);
+  }
+
+  .resume-bullets li + li {
+    margin-top: 2pt;
+  }
+
+  .resume-skills {
+    margin: 0;
+    padding-left: 16pt;
+    color: var(--ink);
+  }
+
+  .resume-skills li + li {
+    margin-top: 4pt;
+  }
+
+  /* Screen-only frame (not part of print) */
+  @media screen {
+    .resume-sheet {
+      box-shadow: 0 8px 28px rgb(0 0 0 / 10%);
+      outline: 1px solid rgb(0 0 0 / 6%);
+    }
+  }
+
+  @media print {
+    .resume-sheet {
+      box-shadow: none;
+      outline: none;
+      /* Keep same width/padding as screen so layout matches */
+      width: 210mm;
+      min-height: auto;
+    }
+  }
+</style>

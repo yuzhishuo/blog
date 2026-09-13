@@ -1,24 +1,136 @@
 ---
-import PageLayout from '@/layouts/CommonPage.astro'
+import { Header, ThemeProvider } from 'astro-pure/components/basic'
+import Footer from '@/components/Footer.astro'
+import BaseHead from '@/components/BaseHead.astro'
+import ResumeSheet from '@/components/resume/ResumeSheet.astro'
+import config from '@/site-config'
+import raw from '@/data/resume.json'
+import type { ResumeData } from '@/lib/resume'
+import '@/assets/styles/global.css'
+import '@/assets/styles/app.css'
+
+const data = raw as ResumeData
+const title = `${data.name} · 简历`
 ---
 
-<PageLayout title='简历'>
-  <p>
-    数据源：仓库 <code>resume/resume.json</code>。本机用 Docker 起可视化编辑器改内容，导出 PDF 后本页展示。
-  </p>
-  <p class='not-prose text-sm text-muted-foreground'>
-    启动：<code>docker compose -f docker-compose.resume.yml up -d</code> →
-    <a href='http://localhost:3099' target='_blank' rel='noopener'>localhost:3099</a>
-  </p>
-  <p class='not-prose flex flex-wrap gap-3 text-sm'>
-    <a class='rounded-lg border px-3 py-1.5 no-underline hover:border-primary' href='/resume.pdf' target='_blank' rel='noopener'>
-      打开 PDF
-    </a>
-    <a class='rounded-lg border px-3 py-1.5 no-underline hover:border-primary' href='/resume.pdf' download>
-      下载 PDF
-    </a>
-  </p>
-  <div class='not-prose mt-4 overflow-hidden rounded-2xl border bg-muted'>
-    <iframe title='简历 PDF' src='/resume.pdf' class='h-[min(85vh,56rem)] w-full'></iframe>
-  </div>
-</PageLayout>
+<html lang={config.locale.lang} class='resume-page'>
+  <head>
+    <BaseHead description={`${data.intent} · ${data.city}`} title={title} />
+    <ThemeProvider />
+    <style is:global>
+      @page {
+        size: A4;
+        margin: 0;
+      }
+
+      html.resume-page body {
+        background: #e8eaed;
+      }
+
+      .resume-toolbar {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid hsl(var(--border));
+        background: hsl(var(--background) / 0.94);
+        backdrop-filter: blur(8px);
+      }
+
+      .resume-toolbar p {
+        margin: 0;
+        font-size: 0.875rem;
+        color: hsl(var(--muted-foreground));
+      }
+
+      .resume-toolbar-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+
+      .resume-toolbar button,
+      .resume-toolbar a {
+        display: inline-flex;
+        align-items: center;
+        border-radius: 0.65rem;
+        border: 1px solid hsl(var(--border));
+        background: hsl(var(--muted) / 0.5);
+        padding: 0.4rem 0.85rem;
+        font-size: 0.875rem;
+        color: hsl(var(--foreground));
+        text-decoration: none;
+        cursor: pointer;
+      }
+
+      .resume-toolbar button.primary {
+        border-color: transparent;
+        background: hsl(var(--primary));
+        color: hsl(var(--primary-foreground));
+      }
+
+      .resume-stage {
+        padding: 1.5rem 1rem 3rem;
+        display: flex;
+        justify-content: center;
+      }
+
+      @media print {
+        html.resume-page,
+        html.resume-page body {
+          background: #fff !important;
+        }
+
+        .no-print {
+          display: none !important;
+        }
+
+        #main-container,
+        .resume-stage,
+        .resume-stage-inner {
+          display: block !important;
+          width: auto !important;
+          max-width: none !important;
+          min-height: 0 !important;
+          margin: 0 !important;
+          padding: 0 !important;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id='main-container' class='flex min-h-[100dvh] w-full flex-col'>
+      <div class='no-print'>
+        <Header />
+      </div>
+
+      <div class='flex-1 w-full'>
+        <div class='resume-toolbar no-print'>
+          <p>数据：<code>resume/resume.json</code> · 展示与打印同一版式 · Ctrl/⌘ + P</p>
+          <div class='resume-toolbar-actions'>
+            <button type='button' class='primary' id='resume-print-btn'>打印简历</button>
+            <a href='/'>回首页</a>
+          </div>
+        </div>
+
+        <div class='resume-stage'>
+          <ResumeSheet data={data} />
+        </div>
+      </div>
+
+      <div class='no-print mx-auto w-full max-w-[70rem] px-4'>
+        <Footer />
+      </div>
+    </div>
+
+    <script>
+      document.getElementById('resume-print-btn')?.addEventListener('click', () => window.print())
+    </script>
+  </body>
+</html>

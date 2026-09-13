@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "astro dev",
     "dev:check": "astro check --watch & astro dev",
-    "build": "astro-pure check && astro check && npm run douban && npm run tracks && astro build",
+    "build": "npm run resume:sync && astro-pure check && astro check && npm run douban && npm run tracks && astro build",
     "preview": "astro preview",
     "sync": "astro sync",
     "check": "astro check",
@@ -17,10 +17,11 @@
     "clean": "rm -rf .astro .vercel dist",
     "cache:avatars": "tsx preset/scripts/cacheAvatars.ts",
     "build:only": "astro build",
-    "build:ci": "npm run douban && npm run tracks && astro build --force",
+    "build:ci": "npm run resume:sync && npm run douban && npm run tracks && astro build --force",
     "douban": "node scripts/fetch-douban.mjs",
     "tracks": "node scripts/build-tracks.mjs",
-    "resume": "cd resume && uv tool run --from \"rendercv[full]\" rendercv render Liu_Yimin_CV.yaml && cp rendercv_output/*.pdf ../public/resume.pdf"
+    "resume": "cd resume && uv tool run --from \"rendercv[full]\" rendercv render Liu_Yimin_CV.yaml && cp rendercv_output/*.pdf ../public/resume.pdf",
+    "resume:sync": "cp resume/resume.json src/data/resume.json"
   },
   "dependencies": {
     "@astrojs/check": "0.9.9",
