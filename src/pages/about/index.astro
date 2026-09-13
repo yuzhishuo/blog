@@ -3,14 +3,8 @@ import { Button, Timeline } from 'astro-pure/user'
 import PageLayout from '@/layouts/CommonPage.astro'
 import Substats from '@/components/about/Substats.astro'
 import ToolSection from '@/components/about/ToolSection.astro'
-import ResumeSheet from '@/components/resume/ResumeSheet.astro'
-import raw from '@/data/resume.json'
-import type { ResumeData } from '@/lib/resume'
-
-const resume = raw as ResumeData
 
 const headings = [
-  { depth: 2, slug: 'resume', text: '简历' },
   { depth: 2, slug: 'hobbies', text: '兴趣' },
   { depth: 2, slug: 'tools', text: '工具' },
   { depth: 2, slug: 'social-networks', text: '社交' },
@@ -19,31 +13,13 @@ const headings = [
 ---
 
 <PageLayout title='关于' {headings} comment>
-  <div class='about-screen-only'>
   <p>Engineering · Linux · Tools</p>
   <p>
     我是 Yi min Liu。写博客主要是为了沉淀工程实践：Linux、Shell、开发工具，以及一些可复现的折腾记录。
   </p>
   <p>Motto: Stay hungry, Stay foolish.</p>
   <Button title='查看项目' class='w-fit' href='/projects' variant='ahead' />
-  </div>
 
-  <h2 id='resume' class='about-resume-heading'>简历</h2>
-  <div class='no-print not-prose mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-muted/40 px-3 py-2 text-sm'>
-    <p class='m-0 text-muted-foreground'>数据 <code>resume/resume.json</code> · 打印只出简历</p>
-    <button
-      type='button'
-      id='resume-print-btn'
-      class='rounded-lg border bg-background px-3 py-1 text-foreground hover:border-primary/40 hover:text-primary'
-    >
-      打印简历
-    </button>
-  </div>
-  <div id='resume-print-root' class='not-prose'>
-    <ResumeSheet data={resume} />
-  </div>
-
-  <div class='about-screen-only'>
   {/* general-talk */}
   <h2 id='hobbies'>兴趣</h2>
   <ul>
@@ -218,60 +194,4 @@ const headings = [
       其他统计：<a href='https://github.com/spencerwooo/substats' target='_blank'>Substats</a>
     </li>
   </ul>
-  </div>
 </PageLayout>
-
-<style is:global>
-  @page {
-    size: A4 portrait;
-    margin: 10mm 12mm;
-  }
-
-  @media print {
-    html,
-    body {
-      background: #fff !important;
-      color: #111 !important;
-      height: auto !important;
-      min-height: 0 !important;
-      overflow: visible !important;
-    }
-
-    /* Hide site chrome + about content; only resume prints */
-    header,
-    footer,
-    nav,
-    #sidebar,
-    #sidebar-shade,
-    #action-buttons,
-    .bottom,
-    .no-print,
-    .about-resume-heading,
-    .about-screen-only {
-      display: none !important;
-    }
-
-    #main-container,
-    main,
-    article,
-    #content,
-    #resume-print-root {
-      display: block !important;
-      width: 100% !important;
-      max-width: none !important;
-      margin: 0 !important;
-      padding: 0 !important;
-      min-height: 0 !important;
-      height: auto !important;
-    }
-
-    #resume-sheet {
-      margin: 0 !important;
-      padding: 0 !important;
-    }
-  }
-</style>
-
-<script>
-  document.getElementById('resume-print-btn')?.addEventListener('click', () => window.print())
-</script>
