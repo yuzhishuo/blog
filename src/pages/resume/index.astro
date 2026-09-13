@@ -20,14 +20,10 @@ const title = `${data.name} · 简历`
     <style is:global>
       @page {
         size: A4;
-        margin: 12mm 14mm;
+        margin: 14mm 16mm;
       }
 
-      html.resume-page body {
-        background: hsl(var(--background));
-      }
-
-      .resume-page-shell {
+      .resume-shell {
         width: 100%;
         max-width: 70rem;
         margin: 0 auto;
@@ -36,69 +32,40 @@ const title = `${data.name} · 简历`
         flex-direction: column;
       }
 
-      .resume-toolbar {
-        position: sticky;
-        top: 0;
-        z-index: 30;
+      .resume-bar {
         display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        justify-content: space-between;
-        gap: 0.75rem;
-        margin: 0.75rem 1rem 0;
-        padding: 0.7rem 0.9rem;
-        border: 1px solid hsl(var(--border));
-        border-radius: 1rem;
-        background: hsl(var(--background) / 0.92);
-        backdrop-filter: blur(10px);
+        justify-content: flex-end;
+        gap: 0.5rem;
+        padding: 0.75rem 1rem 0;
       }
 
-      .resume-toolbar p {
-        margin: 0;
-        font-size: 0.85rem;
+      .resume-bar button,
+      .resume-bar a {
+        border: 1px solid hsl(var(--border));
+        background: transparent;
         color: hsl(var(--muted-foreground));
-      }
-
-      .resume-toolbar-actions {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.45rem;
-      }
-
-      .resume-toolbar a,
-      .resume-toolbar button {
-        display: inline-flex;
-        align-items: center;
-        border-radius: 0.75rem;
-        border: 1px solid hsl(var(--border));
-        background: hsl(var(--muted) / 0.45);
-        padding: 0.35rem 0.8rem;
-        font-size: 0.85rem;
-        color: hsl(var(--foreground));
+        border-radius: 0.65rem;
+        padding: 0.3rem 0.75rem;
+        font-size: 0.8rem;
         text-decoration: none;
         cursor: pointer;
       }
 
-      .resume-toolbar button.primary {
-        border-color: transparent;
-        background: hsl(var(--primary));
-        color: hsl(var(--primary-foreground));
+      .resume-bar button:hover,
+      .resume-bar a:hover {
+        color: hsl(var(--foreground));
+        border-color: hsl(var(--foreground) / 0.25);
       }
 
       .resume-main {
         flex: 1;
-        padding: 1.25rem 1rem 2.5rem;
+        padding: 1rem 1.25rem 3rem;
       }
 
-      /*
-        Print: hide ALL site chrome. Only #resume-sheet is visible.
-        This is intentional and separate from screen layout.
-      */
       @media print {
         html.resume-page,
         html.resume-page body {
           background: #fff !important;
-          color: #111 !important;
         }
 
         html.resume-page body * {
@@ -114,32 +81,27 @@ const title = `${data.name} · 简历`
           position: absolute !important;
           inset: 0 auto auto 0 !important;
           width: 100% !important;
-          max-width: none !important;
           margin: 0 !important;
           padding: 0 !important;
         }
 
         .resume-site-chrome,
-        .resume-toolbar {
+        .resume-bar {
           display: none !important;
         }
       }
     </style>
   </head>
 
-  <body>
-    <div class='resume-page-shell'>
+  <body class='bg-background text-foreground'>
+    <div class='resume-shell'>
       <div class='resume-site-chrome'>
         <Header />
       </div>
 
-      <div class='resume-toolbar resume-site-chrome'>
-        <p>简历页独立排版 · 数据 <code>resume/resume.json</code></p>
-        <div class='resume-toolbar-actions'>
-          <button type='button' class='primary' id='resume-print-btn'>打印（无网页头）</button>
-          <a href='/'>回首页</a>
-          <a href='/about'>关于</a>
-        </div>
+      <div class='resume-bar resume-site-chrome'>
+        <a href='/'>首页</a>
+        <button type='button' id='resume-print-btn'>打印</button>
       </div>
 
       <main class='resume-main'>
