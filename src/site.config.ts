@@ -124,6 +124,7 @@ export const giscus = {
   reactionsEnabled: '1' as const,
   emitMetadata: '0' as const,
   inputPosition: 'bottom' as const,
+  // Theme URLs set in Giscus.astro to match Pure light/dark palette
   theme: 'preferred_color_scheme' as const,
   lang: 'zh-CN' as const,
   loading: 'lazy' as const

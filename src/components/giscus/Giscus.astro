@@ -9,39 +9,97 @@ interface Props {
 const { class: className } = Astro.props
 const cfg = getGiscusConfig()
 const ready = isGiscusReady(cfg)
+const siteOrigin = Astro.site?.origin ?? 'https://yuzhishuo.github.io'
+const themeLight = `${siteOrigin}/styles/giscus-light.css`
+const themeDark = `${siteOrigin}/styles/giscus-dark.css`
 ---
 
 {
   ready ? (
-    <div id="giscus" class={cn('not-prose giscus-wrap', className)}>
+    <div id='giscus' class={cn('not-prose giscus-wrap', className)}>
       <script
         is:inline
-        src="https://giscus.app/client.js"
-        data-repo={cfg.repo}
-        data-repo-id={cfg.repoId}
-        data-category={cfg.category}
-        data-category-id={cfg.categoryId}
-        data-mapping={cfg.mapping}
-        data-strict={cfg.strict}
-        data-reactions-enabled={cfg.reactionsEnabled}
-        data-emit-metadata={cfg.emitMetadata}
-        data-input-position={cfg.inputPosition}
-        data-theme={cfg.theme}
-        data-lang={cfg.lang}
-        data-loading={cfg.loading}
-        crossorigin="anonymous"
-        async
-      />
+        define:vars={{
+          repo: cfg.repo,
+          repoId: cfg.repoId,
+          category: cfg.category,
+          categoryId: cfg.categoryId,
+          mapping: cfg.mapping,
+          strict: cfg.strict,
+          reactionsEnabled: cfg.reactionsEnabled,
+          emitMetadata: cfg.emitMetadata,
+          inputPosition: cfg.inputPosition,
+          lang: cfg.lang,
+          loading: cfg.loading,
+          themeLight,
+          themeDark
+        }}
+      >
+        ;(function () {
+          const root = document.currentScript?.parentElement
+          if (!root || root.querySelector('script[data-giscus-loader]')) return
+
+          const themeFor = () =>
+            document.documentElement.classList.contains('dark') ? themeDark : themeLight
+
+          const applyTheme = (theme) => {
+            const iframe = root.querySelector('iframe.giscus-frame')
+            if (!iframe?.contentWindow) return
+            iframe.contentWindow.postMessage(
+              { giscus: { setConfig: { theme } } },
+              'https://giscus.app'
+            )
+          }
+
+          const script = document.createElement('script')
+          script.src = 'https://giscus.app/client.js'
+          script.async = true
+          script.crossOrigin = 'anonymous'
+          script.dataset.giscusLoader = '1'
+          script.setAttribute('data-repo', repo)
+          script.setAttribute('data-repo-id', repoId)
+          script.setAttribute('data-category', category)
+          script.setAttribute('data-category-id', categoryId)
+          script.setAttribute('data-mapping', mapping)
+          script.setAttribute('data-strict', strict)
+          script.setAttribute('data-reactions-enabled', reactionsEnabled)
+          script.setAttribute('data-emit-metadata', emitMetadata)
+          script.setAttribute('data-input-position', inputPosition)
+          script.setAttribute('data-theme', themeFor())
+          script.setAttribute('data-lang', lang)
+          script.setAttribute('data-loading', loading)
+          root.appendChild(script)
+
+          // Follow Pure's html.dark class (header theme toggle)
+          new MutationObserver(() => applyTheme(themeFor())).observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: ['class']
+          })
+        })()
+      </script>
     </div>
   ) : (
-    <div id="giscus" class={cn('not-prose rounded-lg border border-dashed p-4 text-sm opacity-70', className)}>
+    <div
+      id='giscus'
+      class={cn('not-prose rounded-lg border border-dashed p-4 text-sm opacity-70', className)}
+    >
       <p>
         评论组件尚未就绪。请在 <code>src/site.config.ts</code> 填写
         <code>repo</code> / <code>repoId</code> / <code>category</code> / <code>categoryId</code>
-       （或设置 <code>PUBLIC_GISCUS_*</code>），并将 <code>giscus.enable</code> 设为
+        （或设置 <code>PUBLIC_GISCUS_*</code>），并将 <code>giscus.enable</code> 设为
         <code>true</code>。详见 SETUP.md。若配置已就绪但仍无评论，请确认已安装
-        <a href="https://github.com/apps/giscus" target="_blank" rel="noopener">Giscus GitHub App</a>。
+        <a href='https://github.com/apps/giscus' target='_blank' rel='noopener'>
+          Giscus GitHub App
+        </a>
+        。
       </p>
     </div>
   )
 }
+
+<style>
+  .giscus-wrap :global(iframe.giscus-frame) {
+    width: 100%;
+    color-scheme: light dark;
+  }
+</style>
