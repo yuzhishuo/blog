@@ -42,6 +42,8 @@ jobs:
           NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
           NOTION_DATA_SOURCE_ID: ${{ secrets.NOTION_DATA_SOURCE_ID }}
           DOUBAN_USER_ID: ${{ vars.DOUBAN_USER_ID }}
+          PUBLIC_UMAMI_WEBSITE_ID: ${{ secrets.PUBLIC_UMAMI_WEBSITE_ID }}
+          PUBLIC_UMAMI_SRC: ${{ vars.PUBLIC_UMAMI_SRC }}
         run: |
           export NOTION_DATABASE_ID="${NOTION_DATABASE_ID:-2570b37ec46a4bf39795c1bbb6a66d8d}"
           export NOTION_DATA_SOURCE_ID="${NOTION_DATA_SOURCE_ID:-a1a3b01e-711c-42fb-b3c1-c05b796fccfe}"

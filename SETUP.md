@@ -155,7 +155,8 @@ Workflow: `.github/workflows/deploy-pages.yml` (runs in **source** `yuzhishuo/bl
 - Triggers: `push` to `main`, **cron `*/15 * * * *`**, `workflow_dispatch`
 - Build: Node 22 · `npm run build:ci` · `NOTION_TOKEN` + Notion IDs + `DOUBAN_USER_ID` var
 - Deploy: `peaceiris/actions-gh-pages@v4` → `external_repository: yuzhishuo/yuzhishuo.github.io`, `publish_dir: dist`, `publish_branch: main`, `force_orphan: true`
-- Secrets on **source**: `NOTION_TOKEN`, `PAGES_DEPLOY_TOKEN` (PAT that can push to product)
+- Secrets on **source**: `NOTION_TOKEN`, `PAGES_DEPLOY_TOKEN` (PAT that can push to product), optional `PUBLIC_UMAMI_WEBSITE_ID`
+- Optional var `PUBLIC_UMAMI_SRC` (default `https://cloud.umami.is/script.js`)
 - **Product** Pages: branch `main` / root (not `actions/deploy-pages` / GitHub Actions source)
 
 ---
@@ -194,12 +195,27 @@ npm run build
 - Re-run `npm run douban` locally or in CI to refresh; cron deploy already re-fetches each build.
 
 
+
+
+## Umami analytics（隐私向访问统计）
+
+无 Cookie、开源。推荐 [Umami Cloud](https://cloud.umami.is/signup) Hobby 免费档。
+
+1. 注册后添加网站：Domain = `yuzhishuo.github.io`
+2. 复制 **Website ID**（UUID）
+3. 在源仓 `yuzhishuo/blog` → Settings → Secrets → Actions 添加 `PUBLIC_UMAMI_WEBSITE_ID`
+4. （可选）自建 Umami 时设置变量 `PUBLIC_UMAMI_SRC` 为你的 `https://your-host/script.js`
+5. 重新跑 Deploy；线上 `<head>` 会出现 umami script（仅 production）
+
+组件：`src/components/Analytics.astro`
+
 ## 中文摘要
 
 - 项目路径：`/workspace/pure-blog`（agent 盒子上持久，需你自行 push 到 GitHub）
 - 本地：`npm i && npm run build:ci`（无 token 可构建）；开发：`npm run dev`
 - RSS：`/rss.xml`（双源；顶栏「订阅」与首页「订阅 RSS」）
 - 文章页分享：微信扫码 + 复制链接 / 知乎粘贴（`ShareChina`；主题 share 仅 weibo）
+- Umami：隐私统计（需 secret `PUBLIC_UMAMI_WEBSITE_ID`）
 - Giscus：已启用（`yuzhishuo/blog` Discussions / Announcements）；Waline 已关；若无评论请安装 Giscus App
 - Notion：正式 Integration 加载已接入；发布 = Status「已发布」→ Actions（含 15 分钟定时）→ Pages
 - 豆瓣：`npm run douban` → `src/data/douban.json`；首页「看过 · 玩过 · 听过」；`DOUBAN_USER_ID` 默认 153627368

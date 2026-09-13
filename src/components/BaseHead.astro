@@ -4,6 +4,7 @@ import { Font } from 'astro:assets'
 import { prod } from 'astro-pure/server'
 import type { SiteMeta } from 'astro-pure/types'
 import config from 'virtual:config'
+import Analytics from '@/components/Analytics.astro'
 
 type Props = SiteMeta
 
@@ -85,6 +86,9 @@ const socialImageURL = new URL(ogImage ? ogImage : config.socialCard, Astro.url)
 />
 
 <meta content={Astro.generator} name='generator' />
+
+{/* Privacy analytics (Umami) — see PUBLIC_UMAMI_* */}
+<Analytics />
 
 {
   /* User script*/

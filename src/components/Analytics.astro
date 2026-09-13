@@ -1,0 +1,18 @@
+---
+/**
+ * Privacy-friendly analytics (Umami).
+ * Set PUBLIC_UMAMI_WEBSITE_ID (and optional PUBLIC_UMAMI_SRC) in CI / .env.
+ * Only loads in production when a website id is present — no cookies, GDPR-friendly.
+ */
+import { prod } from 'astro-pure/server'
+
+const websiteId = (import.meta.env.PUBLIC_UMAMI_WEBSITE_ID || '').trim()
+const src = (import.meta.env.PUBLIC_UMAMI_SRC || 'https://cloud.umami.is/script.js').trim()
+const enabled = prod && !!websiteId
+---
+
+{
+  enabled && (
+    <script is:inline defer src={src} data-website-id={websiteId} data-domains='yuzhishuo.github.io' />
+  )
+}
