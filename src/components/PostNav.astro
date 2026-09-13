@@ -1,0 +1,60 @@
+---
+/**
+ * More prominent prev/next post navigation (replaces theme ArticleBottom look).
+ */
+import { cn } from 'astro-pure/utils'
+import type { BlogPost } from '@/lib/posts'
+
+interface Props {
+  id: string
+  posts: BlogPost[]
+  class?: string
+}
+
+const { id, posts, class: className } = Astro.props
+// posts are newest-first: older = index+1, newer = index-1
+const index = posts.findIndex((x) => x.id === id)
+const older = index >= 0 && index < posts.length - 1 ? posts[index + 1] : undefined
+const newer = index > 0 ? posts[index - 1] : undefined
+const prev = older
+const next = newer
+---
+
+{(prev || next) && (
+  <nav
+    class={cn('not-prose post-nav grid gap-3 sm:grid-cols-2', className)}
+    aria-label='上下篇文章'
+  >
+    {prev ? (
+      <a
+        href={`/blog/${prev.id}`}
+        class='group flex min-w-0 flex-col gap-1 rounded-2xl border bg-muted/40 px-4 py-3 no-underline transition-colors hover:border-primary/40 hover:bg-muted'
+      >
+        <span class='text-xs text-muted-foreground'>← 上一篇</span>
+        <span class='line-clamp-2 text-sm font-medium text-foreground group-hover:text-primary'>
+          {prev.data.title}
+        </span>
+        {'description' in prev.data && prev.data.description ? (
+          <span class='line-clamp-2 text-xs text-muted-foreground'>{prev.data.description}</span>
+        ) : null}
+      </a>
+    ) : (
+      <div class='hidden sm:block' />
+    )}
+
+    {next ? (
+      <a
+        href={`/blog/${next.id}`}
+        class='group flex min-w-0 flex-col gap-1 rounded-2xl border bg-muted/40 px-4 py-3 text-end no-underline transition-colors hover:border-primary/40 hover:bg-muted sm:items-end'
+      >
+        <span class='text-xs text-muted-foreground'>下一篇 →</span>
+        <span class='line-clamp-2 text-sm font-medium text-foreground group-hover:text-primary'>
+          {next.data.title}
+        </span>
+        {'description' in next.data && next.data.description ? (
+          <span class='line-clamp-2 text-xs text-muted-foreground'>{next.data.description}</span>
+        ) : null}
+      </a>
+    ) : null}
+  </nav>
+)}

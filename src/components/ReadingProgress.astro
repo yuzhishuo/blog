@@ -1,0 +1,55 @@
+---
+/**
+ * Fixed top reading progress for blog posts (#content).
+ */
+---
+
+<div
+  id='reading-progress'
+  class='reading-progress pointer-events-none fixed inset-x-0 top-0 z-[60] h-0.5 bg-transparent'
+  aria-hidden='true'
+>
+  <div
+    class='reading-progress__bar h-full w-0 origin-left bg-primary transition-[width] duration-75 ease-out'
+    data-bar
+  >
+  </div>
+</div>
+
+<script>
+  function initReadingProgress() {
+    const root = document.getElementById('reading-progress')
+    const bar = root?.querySelector('[data-bar]') as HTMLElement | null
+    const article = document.getElementById('content')
+    if (!root || !bar || !article) return
+
+    const update = () => {
+      const rect = article.getBoundingClientRect()
+      const articleTop = window.scrollY + rect.top
+      const articleHeight = article.offsetHeight
+      const viewport = window.innerHeight
+      const start = articleTop
+      const end = articleTop + articleHeight - viewport
+      const range = Math.max(1, end - start)
+      const progress = Math.min(1, Math.max(0, (window.scrollY - start) / range))
+      bar.style.width = `${(progress * 100).toFixed(2)}%`
+    }
+
+    let ticking = false
+    const onScroll = () => {
+      if (ticking) return
+      ticking = true
+      requestAnimationFrame(() => {
+        update()
+        ticking = false
+      })
+    }
+
+    window.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('resize', onScroll, { passive: true })
+    update()
+  }
+
+  initReadingProgress()
+  document.addEventListener('astro:page-load', initReadingProgress)
+</script>

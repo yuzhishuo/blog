@@ -4,10 +4,12 @@ import type { MarkdownHeading } from 'astro'
 import 'katex/dist/katex.min.css'
 
 import { MediumZoom } from 'astro-pure/advanced'
-import { ArticleBottom, Copyright, Hero, TOC } from 'astro-pure/components/pages'
+import { Copyright, Hero, TOC } from 'astro-pure/components/pages'
 import config from 'virtual:config'
 import PageLayout from '@/layouts/ContentLayout.astro'
 import ShareChina from '@/components/ShareChina.astro'
+import ReadingProgress from '@/components/ReadingProgress.astro'
+import PostNav from '@/components/PostNav.astro'
 import { Giscus } from '@/components/giscus'
 import { PageInfo } from '@/components/waline'
 import type { BlogPost } from '@/lib/posts'
@@ -43,7 +45,23 @@ const articleDate = updatedDate?.toISOString() ?? publishDate.toISOString()
 const primaryColor =
   (heroImage && 'color' in heroImage ? heroImage.color : undefined) ??
   'hsl(var(--primary) / var(--un-text-opacity))'
+
+// Localize reading time: theme emits "N min" / words
+const words = Number(remarkPluginFrontmatter.words ?? 0)
+const minutesFromWords = words > 0 ? Math.max(1, Math.ceil(words / 300)) : 0
+const minutesFromText = (() => {
+  const raw = String(remarkPluginFrontmatter.minutesRead ?? '')
+  const m = raw.match(/(\d+)/)
+  return m ? Math.max(1, Number(m[1])) : 0
+})()
+const minutes = minutesFromWords || minutesFromText || 1
+const heroFrontmatter = {
+  ...remarkPluginFrontmatter,
+  minutesRead: `约 ${minutes} 分钟阅读`
+}
 ---
+
+<ReadingProgress />
 
 <PageLayout
   meta={{ articleDate, description, ogImage: socialImage, title }}
@@ -52,7 +70,7 @@ const primaryColor =
 >
   {!!headings.length && <TOC {headings} slot='sidebar' />}
 
-  <Hero data={data as any} {remarkPluginFrontmatter} slot='header'>
+  <Hero data={data as any} remarkPluginFrontmatter={heroFrontmatter} slot='header'>
     <Fragment slot='description'>
       {!isDraft && enableComment && <PageInfo comment={false} class='mt-1' />}
     </Fragment>
@@ -63,8 +81,8 @@ const primaryColor =
   <Fragment slot='bottom'>
     {/* Copyright (theme weibo/x/bluesky share) */}
     <Copyright data={data as any} />
-    {/* Article recommend */}
-    <ArticleBottom collections={posts} {id} class='mt-3 sm:mt-6' />
+    {/* Prev / next — larger cards */}
+    <PostNav {posts} {id} class='mt-4 sm:mt-8' />
     {/* Comments: Giscus (Waline disabled) */}
     {!isDraft && enableComment && <Giscus class='mt-3 sm:mt-6' />}
   </Fragment>
