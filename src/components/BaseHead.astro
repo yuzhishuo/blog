@@ -11,6 +11,9 @@ type Props = SiteMeta
 
 const { articleDate, description, ogImage, title } = Astro.props
 
+const path = Astro.url.pathname.replace(/\/$/, '') || '/'
+const noIndexPage = path === '/resume'
+
 const siteTitle = `${title} ${config.titleDelimiter} ${config.title}`
 const canonicalURL = new URL(Astro.url.pathname, Astro.site)
 const socialImageURL = new URL(ogImage ? ogImage : config.socialCard, Astro.url).href
@@ -48,6 +51,17 @@ const socialImageURL = new URL(ogImage ? ogImage : config.socialCard, Astro.url)
 {/* Theme Color */}
 {/* <meta content='' name='theme-color' /> */}
 <meta name='color-scheme' content='light dark' />
+
+{
+  noIndexPage && (
+    <>
+      <meta name='robots' content='noindex, nofollow, noarchive, nosnippet' />
+      <meta name='googlebot' content='noindex, nofollow, noarchive, nosnippet' />
+      <meta name='baiduspider' content='noindex, nofollow' />
+      <meta name='bingbot' content='noindex, nofollow' />
+    </>
+  )
+}
 
 {/* Open Graph / Facebook */}
 <meta content={articleDate ? 'article' : 'website'} property='og:type' />

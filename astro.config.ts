@@ -1,4 +1,5 @@
 import { rehypeHeadingIds } from '@astrojs/markdown-remark'
+import sitemap from '@astrojs/sitemap'
 import AstroPureIntegration from 'astro-pure'
 import { defineConfig, fontProviders, svgoOptimizer } from 'astro/config'
 import rehypeKatex from 'rehype-katex'
@@ -97,7 +98,13 @@ export default defineConfig({
     }
   },
 
-  integrations: [AstroPureIntegration(config)],
+  integrations: [
+    // Provide sitemap ourselves so Pure skips its default, and exclude /resume
+    sitemap({
+      filter: (page) => !page.includes('/resume')
+    }),
+    AstroPureIntegration(config)
+  ],
 
   experimental: {
     contentIntellisense: true,

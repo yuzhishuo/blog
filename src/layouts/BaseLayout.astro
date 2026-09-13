@@ -20,9 +20,12 @@ const {
   highlightColor,
   ...props
 } = Astro.props
+
+const path = Astro.url.pathname.replace(/\/$/, '') || '/'
+const pagefindIgnore = path === '/resume'
 ---
 
-<html lang={config.locale.lang}>
+<html lang={config.locale.lang} data-pagefind-ignore={pagefindIgnore ? 'all' : undefined}>
   <head>
     <BaseHead {articleDate} {description} {ogImage} {title} />
     <ThemeProvider />

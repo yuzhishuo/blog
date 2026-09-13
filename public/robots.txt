@@ -1,0 +1,16 @@
+User-agent: *
+Allow: /
+
+# Keep resume out of search indexes (best-effort for crawlers that honor robots.txt)
+Disallow: /resume
+Disallow: /resume/
+
+User-agent: Baiduspider
+Disallow: /resume
+Disallow: /resume/
+
+User-agent: Baiduspider-render
+Disallow: /resume
+Disallow: /resume/
+
+Sitemap: https://yuzhishuo.github.io/sitemap-index.xml
