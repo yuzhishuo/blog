@@ -13,6 +13,13 @@ import { notionLoader } from '@luanroger/notion-astro-loader'
 import type { Loader, LoaderContext, ParseDataOptions } from 'astro/loaders'
 import { loadEnv } from 'vite'
 
+import {
+  buildPublishedMap,
+  createNotionTitleFetcher,
+  normalizeNotionPageId,
+  rewriteNotionPageLinks
+} from './notion-links'
+
 export const NOTION_DATABASE_ID = '2570b37ec46a4bf39795c1bbb6a66d8d'
 export const NOTION_DATA_SOURCE_ID = 'a1a3b01e-711c-42fb-b3c1-c05b796fccfe'
 
@@ -171,9 +178,15 @@ function emptyNotionLoader(): Loader {
   }
 }
 
+type RenderedEntry = {
+  html?: string
+  metadata?: Record<string, unknown>
+}
+
 /**
  * Notion → blog collection loader.
  * Remaps Notion properties to the Pure blog schema and uses Slug as entry id.
+ * After render, rewrites Notion page mention links for the public site.
  */
 export function createNotionBlogLoader(): Loader {
   const token = getNotionToken()
@@ -199,6 +212,9 @@ export function createNotionBlogLoader(): Loader {
       const originalParseData = context.parseData.bind(context)
       const originalSet = context.store.set.bind(context.store)
 
+      // Original Notion page id (before slug remapping) for each slug entry
+      const notionPageIdBySlug = new Map<string, string>()
+
       // parseData is a generic method on LoaderContext — assign through a narrow cast
       const parseDataOverride = async (
         args: ParseDataOptions<Record<string, unknown>>
@@ -207,6 +223,9 @@ export function createNotionBlogLoader(): Loader {
           (args.data ?? {}) as { properties?: Record<string, NotionProp> }
         )
         const id = mapped.slug || args.id
+        if (mapped.slug && args.id) {
+          notionPageIdBySlug.set(mapped.slug, normalizeNotionPageId(String(args.id)))
+        }
         return originalParseData({
           id,
           data: {
@@ -227,10 +246,72 @@ export function createNotionBlogLoader(): Loader {
         const data = entry.data as { slug?: string }
         const slug = typeof data.slug === 'string' ? data.slug.trim() : ''
         const id = slug || entry.id
+        // Upstream passes Notion page UUID as entry.id before we remap to slug
+        if (entry.id) {
+          notionPageIdBySlug.set(id, normalizeNotionPageId(String(entry.id)))
+        }
         return originalSet({ ...entry, id })
       }
 
-      return base.load(context)
+      await base.load(context)
+
+      // --- Automate mention / cross-page link rewrite ---
+      const published = buildPublishedMap(
+        [...context.store.keys()].map((key) => {
+          const entry = context.store.get(key)
+          const data = (entry?.data ?? {}) as { slug?: string; title?: string }
+          const slug = (data.slug || key).trim()
+          const pageId =
+            notionPageIdBySlug.get(slug) ||
+            notionPageIdBySlug.get(key) ||
+            normalizeNotionPageId(key)
+          return {
+            pageId,
+            slug,
+            title: typeof data.title === 'string' ? data.title : slug
+          }
+        })
+      )
+
+      const fetchTitle = createNotionTitleFetcher(token)
+      let totalRewrites = 0
+
+      for (const key of context.store.keys()) {
+        const entry = context.store.get(key)
+        if (!entry?.rendered) continue
+        const rendered = entry.rendered as RenderedEntry
+        if (typeof rendered.html !== 'string' || !rendered.html.includes('notion.')) {
+          continue
+        }
+
+        const { html, rewritten } = await rewriteNotionPageLinks(
+          rendered.html,
+          published,
+          fetchTitle
+        )
+        if (rewritten === 0) continue
+
+        totalRewrites += rewritten
+        // Astro skips set() when digest is unchanged — bump it so rewritten HTML sticks.
+        const prevDigest = typeof entry.digest === 'string' ? entry.digest : ''
+        originalSet({
+          id: entry.id,
+          data: entry.data,
+          body: entry.body,
+          filePath: entry.filePath,
+          assetImports: entry.assetImports,
+          digest: `${prevDigest}:notion-links`,
+          rendered: { ...rendered, html }
+        })
+      }
+
+      if (totalRewrites > 0) {
+        context.logger.info(
+          `Rewrote ${totalRewrites} Notion page mention(s) → blog links / plain titles`
+        )
+      } else {
+        context.logger.info('No Notion page mentions needed rewrite')
+      }
     }
   }
 }

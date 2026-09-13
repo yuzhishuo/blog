@@ -44,3 +44,4 @@ bunfig.toml
 # public/douban/  — Douban cover images for the shelf
 # src/data/douban.json — Douban cache used at build/runtime
 tmp/
+src/assets/images/notion/
