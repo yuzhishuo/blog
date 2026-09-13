@@ -1,84 +1,193 @@
 ---
 /**
- * WeChat / Zhihu share for blog posts.
- * Theme `share` schema only allows weibo/x/bluesky — this is a custom add-on.
+ * WeChat / Zhihu share.
+ * Desktop: compact fixed rail on the right.
+ * Mobile: FAB + bottom sheet (native share when available).
  */
 import { Icon } from 'astro-pure/user'
 import { cn } from 'astro-pure/utils'
 
 interface Props {
   url?: string
+  title?: string
   class?: string
 }
 
-const { class: className } = Astro.props
+const { class: className, title: shareTitle } = Astro.props
 const shareUrl = Astro.props.url ?? new URL(Astro.url.pathname, Astro.site).href
-const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(shareUrl)}`
+const pageTitle = shareTitle ?? Astro.props.title ?? ''
+const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(shareUrl)}`
 ---
 
-<section
-  class={cn(
-    'not-prose share-china flex flex-col gap-3 rounded-xl border px-3 py-3 sm:px-4 sm:py-4',
-    className
-  )}
+<div
+  class={cn('share-china not-prose', className)}
   data-share-url={shareUrl}
-  aria-label='分享到微信与知乎'
+  data-share-title={pageTitle}
+  aria-label='分享'
 >
-  <div class='flex items-center gap-2 font-medium'>
-    <Icon name='link' class='size-5 text-muted-foreground' />
-    <span>分享到微信 / 知乎</span>
-  </div>
-
-  <p class='text-sm text-muted-foreground'>
-    复制链接后可粘贴到微信或知乎。微信也可扫码打开本文。
-  </p>
-
-  <div class='flex flex-wrap items-center gap-2'>
-    <button
-      type='button'
-      class='inline-flex items-center gap-1.5 rounded-lg border bg-muted px-3 py-1.5 text-sm text-foreground transition-colors hover:text-primary'
-      data-action='copy'
+  {/* —— Desktop: fixed compact rail —— */}
+  <aside
+    class='share-rail pointer-events-none fixed end-3 top-1/2 z-40 hidden -translate-y-1/2 flex-col items-end gap-2 lg:flex xl:end-6'
+  >
+    <div
+      class='pointer-events-auto flex flex-col gap-1.5 rounded-2xl border bg-background/90 p-1.5 shadow-sm backdrop-blur'
     >
-      <Icon name='link' class='size-4' />
-      复制链接
-    </button>
-    <button
-      type='button'
-      class='inline-flex items-center gap-1.5 rounded-lg border bg-muted px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:text-primary'
-      data-action='zhihu'
-    >
-      <Icon name='zhihu' class='size-4' />
-      知乎
-    </button>
-    <a
-      href='https://www.zhihu.com'
-      target='_blank'
-      rel='noopener noreferrer'
-      class='text-sm text-muted-foreground no-underline hover:text-primary'
-    >
-      打开知乎 ↗
-    </a>
-  </div>
+      <button
+        type='button'
+        class='share-btn group relative flex size-10 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-muted hover:text-primary'
+        data-action='copy'
+        aria-label='复制链接'
+        title='复制链接'
+      >
+        <Icon name='link' class='size-5' />
+        <span
+          class='pointer-events-none absolute end-full me-2 whitespace-nowrap rounded-md border bg-background px-2 py-0.5 text-xs opacity-0 shadow-sm transition-opacity group-hover:opacity-100'
+        >
+          复制链接
+        </span>
+      </button>
 
-  <div class='flex items-start gap-3 rounded-lg border bg-muted p-3'>
-    <img
-      src={qrSrc}
-      width='160'
-      height='160'
-      alt='微信扫码打开本文'
-      class='rounded-md border bg-white p-1'
-      loading='lazy'
-    />
-    <div class='flex flex-col gap-1 text-sm text-muted-foreground'>
-      <span class='font-medium text-foreground'>微信扫码打开</span>
-      <span>使用微信扫一扫打开本篇文章。</span>
+      <div class='relative'>
+        <button
+          type='button'
+          class='share-btn group relative flex size-10 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-muted hover:text-primary'
+          data-action='toggle-qr'
+          aria-label='微信扫码'
+          title='微信扫码'
+          aria-expanded='false'
+          aria-controls='share-qr-popover'
+        >
+          <Icon name='qrcode' class='size-5' />
+          <span
+            class='pointer-events-none absolute end-full me-2 whitespace-nowrap rounded-md border bg-background px-2 py-0.5 text-xs opacity-0 shadow-sm transition-opacity group-hover:opacity-100'
+          >
+            微信扫码
+          </span>
+        </button>
+        <div
+          id='share-qr-popover'
+          class='share-qr-popover absolute end-full top-1/2 me-3 hidden w-44 -translate-y-1/2 rounded-xl border bg-background p-3 shadow-lg'
+          role='dialog'
+          aria-label='微信扫码打开'
+        >
+          <img
+            src={qrSrc}
+            width='140'
+            height='140'
+            alt='微信扫码打开本文'
+            class='mx-auto rounded-md border bg-white p-1'
+            loading='lazy'
+          />
+          <p class='mt-2 text-center text-xs text-muted-foreground'>微信扫一扫打开</p>
+        </div>
+      </div>
+
+      <button
+        type='button'
+        class='share-btn group relative flex size-10 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-muted hover:text-primary'
+        data-action='zhihu'
+        aria-label='分享到知乎'
+        title='分享到知乎'
+      >
+        <Icon name='zhihu' class='size-5' />
+        <span
+          class='pointer-events-none absolute end-full me-2 whitespace-nowrap rounded-md border bg-background px-2 py-0.5 text-xs opacity-0 shadow-sm transition-opacity group-hover:opacity-100'
+        >
+          知乎
+        </span>
+      </button>
+    </div>
+  </aside>
+
+  {/* —— Mobile: FAB —— */}
+  <button
+    type='button'
+    class='share-fab fixed bottom-[7.5rem] end-4 z-40 flex size-10 items-center justify-center rounded-full border-2 border-transparent bg-muted text-muted-foreground shadow-sm transition-colors hover:border-border/75 hover:text-primary sm:bottom-36 sm:end-8 sm:size-12 lg:hidden'
+    data-action='open-sheet'
+    aria-label='分享'
+    title='分享'
+  >
+    <Icon name='link' class='size-5' />
+  </button>
+
+  {/* —— Mobile: bottom sheet —— */}
+  <div
+    class='share-sheet-root fixed inset-0 z-50 hidden lg:hidden'
+    data-sheet
+    aria-hidden='true'
+  >
+    <div class='share-sheet-backdrop absolute inset-0 bg-black/50' data-action='close-sheet'></div>
+    <div
+      class='share-sheet absolute inset-x-0 bottom-0 max-h-[85vh] overflow-y-auto rounded-t-2xl border border-b-0 bg-background p-4 pb-8 shadow-xl'
+      role='dialog'
+      aria-modal='true'
+      aria-label='分享到微信 / 知乎'
+    >
+      <div class='mx-auto mb-3 h-1 w-10 rounded-full bg-border'></div>
+      <div class='mb-3 flex items-center justify-between'>
+        <h2 class='m-0 text-base font-medium'>分享</h2>
+        <button
+          type='button'
+          class='rounded-lg px-2 py-1 text-sm text-muted-foreground hover:text-primary'
+          data-action='close-sheet'
+        >
+          关闭
+        </button>
+      </div>
+
+      <div class='grid grid-cols-3 gap-2'>
+        <button
+          type='button'
+          class='flex flex-col items-center gap-1.5 rounded-xl border bg-muted/60 px-2 py-3 text-xs text-foreground transition-colors hover:text-primary'
+          data-action='native-share'
+        >
+          <Icon name='earth' class='size-5' />
+          系统分享
+        </button>
+        <button
+          type='button'
+          class='flex flex-col items-center gap-1.5 rounded-xl border bg-muted/60 px-2 py-3 text-xs text-foreground transition-colors hover:text-primary'
+          data-action='copy'
+        >
+          <Icon name='link' class='size-5' />
+          复制链接
+        </button>
+        <button
+          type='button'
+          class='flex flex-col items-center gap-1.5 rounded-xl border bg-muted/60 px-2 py-3 text-xs text-foreground transition-colors hover:text-primary'
+          data-action='zhihu'
+        >
+          <Icon name='zhihu' class='size-5' />
+          知乎
+        </button>
+      </div>
+
+      <div class='mt-4 flex items-center gap-3 rounded-xl border bg-muted/40 p-3'>
+        <img
+          src={qrSrc}
+          width='112'
+          height='112'
+          alt='微信扫码打开本文'
+          class='size-28 shrink-0 rounded-md border bg-white p-1'
+          loading='lazy'
+        />
+        <div class='text-sm text-muted-foreground'>
+          <p class='m-0 font-medium text-foreground'>微信扫码</p>
+          <p class='m-0 mt-1 text-xs'>用另一台设备的微信扫一扫打开本文。</p>
+        </div>
+      </div>
     </div>
   </div>
-</section>
+</div>
 
 <script>
   function bindShareChina(root: Element) {
-    const url = (root as HTMLElement).dataset.shareUrl || window.location.href
+    const el = root as HTMLElement
+    const url = el.dataset.shareUrl || window.location.href
+    const title = el.dataset.shareTitle || document.title
+    const sheet = el.querySelector('[data-sheet]') as HTMLElement | null
+    const qrPopover = el.querySelector('.share-qr-popover') as HTMLElement | null
+    const qrToggle = el.querySelector('[data-action="toggle-qr"]') as HTMLButtonElement | null
 
     function toast(message: string) {
       document.dispatchEvent(new CustomEvent('toast', { detail: { message } }))
@@ -101,13 +210,69 @@ const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${e
       toast(message)
     }
 
-    root.querySelector('[data-action="copy"]')?.addEventListener('click', () => {
-      void copy('链接已复制')
+    function openSheet() {
+      if (!sheet) return
+      sheet.classList.remove('hidden')
+      sheet.setAttribute('aria-hidden', 'false')
+      document.documentElement.style.overflow = 'hidden'
+    }
+
+    function closeSheet() {
+      if (!sheet) return
+      sheet.classList.add('hidden')
+      sheet.setAttribute('aria-hidden', 'true')
+      document.documentElement.style.overflow = ''
+    }
+
+    function setQrOpen(open: boolean) {
+      if (!qrPopover || !qrToggle) return
+      qrPopover.classList.toggle('hidden', !open)
+      qrToggle.setAttribute('aria-expanded', open ? 'true' : 'false')
+    }
+
+    el.addEventListener('click', (e) => {
+      const target = (e.target as HTMLElement).closest('[data-action]') as HTMLElement | null
+      if (!target || !el.contains(target)) return
+      const action = target.dataset.action
+      if (action === 'toggle-qr') {
+        e.stopPropagation()
+        setQrOpen(qrPopover?.classList.contains('hidden') ?? true)
+        return
+      }
+      if (action === 'copy') void copy('链接已复制')
+      else if (action === 'zhihu') void copy('链接已复制，可粘贴到知乎')
+      else if (action === 'open-sheet') openSheet()
+      else if (action === 'close-sheet') closeSheet()
+      else if (action === 'native-share') {
+        if (navigator.share) {
+          void navigator
+            .share({ title, url, text: title })
+            .then(() => closeSheet())
+            .catch(() => {
+              /* user cancelled */
+            })
+        } else {
+          void copy('当前环境不支持系统分享，已复制链接')
+        }
+      }
     })
-    root.querySelector('[data-action="zhihu"]')?.addEventListener('click', () => {
-      void copy('链接已复制，可粘贴到知乎')
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeSheet()
+        setQrOpen(false)
+      }
+    })
+
+    document.addEventListener('click', (e) => {
+      if (!qrPopover || qrPopover.classList.contains('hidden')) return
+      if (!el.contains(e.target as Node)) setQrOpen(false)
+      else if (!(e.target as HTMLElement).closest('[data-action="toggle-qr"], .share-qr-popover')) {
+        setQrOpen(false)
+      }
     })
   }
 
   document.querySelectorAll('.share-china').forEach(bindShareChina)
 </script>
+
