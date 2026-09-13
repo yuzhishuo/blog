@@ -11,3 +11,6 @@ cp resume/resume.json src/data/resume.json
 ```
 
 CI/`npm run build` 前建议拷一次；也可只维护 `src/data/resume.json`。
+
+
+> 已取消 `public/resume.pdf` 嵌入。线上只看 `/resume` HTML。
