@@ -1,6 +1,6 @@
 ---
-import { Footer, Header, ThemeProvider } from 'astro-pure/components/basic'
-import SiteStats from '@/components/SiteStats.astro'
+import { Header, ThemeProvider } from 'astro-pure/components/basic'
+import Footer from '@/components/Footer.astro'
 import type { SiteMeta } from 'astro-pure/types'
 import BaseHead from '@/components/BaseHead.astro'
 import config from '@/site-config'
@@ -38,7 +38,6 @@ const {
         <slot />
       </div>
       <Footer />
-      <SiteStats />
     </div>
 
     {/* Set highlight color */}
