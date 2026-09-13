@@ -46,3 +46,28 @@ a {
     color: hsl(var(--primary) / var(--un-text-opacity, 1));
   }
 }
+
+
+/* TOC heading → 目录 */
+toc-heading > h2 {
+  position: relative;
+  color: transparent;
+  user-select: none;
+}
+toc-heading > h2::after {
+  content: '目录';
+  position: absolute;
+  inset-inline-start: 0;
+  top: 0;
+  color: hsl(var(--foreground) / 1);
+}
+
+/* Space for floating action cluster on small screens */
+html.has-floating-actions #main-container {
+  padding-bottom: calc(5.5rem + env(safe-area-inset-bottom));
+}
+@media (max-width: 1023px) {
+  html.has-floating-actions #main-container {
+    padding-right: calc(3.25rem + env(safe-area-inset-right));
+  }
+}

@@ -11,7 +11,6 @@ import ShareChina from '@/components/ShareChina.astro'
 import ReadingProgress from '@/components/ReadingProgress.astro'
 import PostNav from '@/components/PostNav.astro'
 import { Giscus } from '@/components/giscus'
-import { PageInfo } from '@/components/waline'
 import { getReadingTime } from 'astro-pure/utils'
 import type { BlogPost } from '@/lib/posts'
 
@@ -97,6 +96,7 @@ const heroFrontmatter = {
       const label = '约 ' + n + ' 分钟阅读'
       const info = document.querySelector('.article-info')
       if (!info) return
+      const wrap = info.querySelector('.flex.flex-wrap')
       const rows = info.querySelectorAll('.flex.items-center.gap-1')
       rows.forEach((row) => {
         const t = (row.textContent || '').trim()
@@ -107,6 +107,13 @@ const heroFrontmatter = {
           row.appendChild(document.createTextNode(' ' + label))
         }
       })
+      // Merge page PV into the same meta row (avoid a stray line under the quote)
+      if (wrap && !wrap.querySelector('#busuanzi_value_page_pv')) {
+        const pv = document.createElement('div')
+        pv.className = 'flex items-center gap-1'
+        pv.innerHTML = '阅读 <span id="busuanzi_value_page_pv">-</span> 次'
+        wrap.appendChild(pv)
+      }
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', sync)
     else sync()
@@ -117,14 +124,11 @@ const heroFrontmatter = {
   meta={{ articleDate, description, ogImage: socialImage, title }}
   highlightColor={primaryColor}
   back='/blog'
+  share={!isDraft}
 >
   {!!headings.length && <TOC {headings} slot='sidebar' />}
 
-  <Hero data={data as any} remarkPluginFrontmatter={heroFrontmatter} slot='header'>
-    <Fragment slot='description'>
-      {!isDraft && <PageInfo class='mt-1' />}
-    </Fragment>
-  </Hero>
+  <Hero data={data as any} remarkPluginFrontmatter={heroFrontmatter} slot='header' />
 
   <slot />
 

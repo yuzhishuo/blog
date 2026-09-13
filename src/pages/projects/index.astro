@@ -7,14 +7,14 @@ import ProjectSection from '@/components/projects/ProjectSection.astro'
 import KeyIcon from '@/assets/icons/key.svg'
 
 const headings = [
-  { depth: 2, slug: 'programs', text: 'Programs' },
-  { depth: 2, slug: 'learnings', text: 'Learnings' },
-  { depth: 2, slug: 'others', text: 'Others' },
-  { depth: 2, slug: 'gpg-signature', text: 'GPG Signature' }
+  { depth: 2, slug: 'programs', text: '项目' },
+  { depth: 2, slug: 'learnings', text: '学习' },
+  { depth: 2, slug: 'others', text: '其他' },
+  { depth: 2, slug: 'gpg-signature', text: 'GPG 签名' }
 ]
 ---
 
-<PageLayout title='Projects' {headings} view>
+<PageLayout title='项目' {headings} view>
   {/* About astro-pure */}
   <div class='not-prose flex justify-center'>
     <a
@@ -42,7 +42,7 @@ const headings = [
     — 这里记录一些工程实践与开源项目。
   </p>
 
-  <h2 id='programs'>Programs</h2>
+  <h2 id='programs'>项目</h2>
   <ProjectSection
     projects={[
       {
@@ -90,7 +90,7 @@ const headings = [
     />
   </Collapse>
 
-  <h2 id='learnings'>Learnings</h2>
+  <h2 id='learnings'>学习</h2>
   <ProjectSection
     class='my-2'
     projects={[
@@ -115,7 +115,7 @@ const headings = [
     ]}
   />
 
-  <h2 id='others'>Others</h2>
+  <h2 id='others'>其他</h2>
   <ProjectSection
     projects={[
       {
@@ -131,7 +131,7 @@ const headings = [
     ]}
   />
 
-  <h2 id='gpg-signature'>GPG Signature</h2>
+  <h2 id='gpg-signature'>GPG 签名</h2>
   <p>
     You can verify the authenticity of the files I signed by checking the GPG signature. My GPG key
     is <code>114514</code>, and you can find it on the opengpg key servers or download from it.

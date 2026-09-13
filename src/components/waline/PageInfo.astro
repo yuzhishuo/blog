@@ -1,6 +1,6 @@
 ---
 /**
- * Page meta line: 不蒜子 page PV (no Waline server).
+ * Compact 不蒜子 page PV line (optional pages).
  */
 import { cn } from 'astro-pure/utils'
 
@@ -13,8 +13,6 @@ interface Props {
 const { class: className, ...props } = Astro.props
 ---
 
-<div class={cn('text-sm text-muted-foreground', className)} {...props}>
-  <span>
-    阅读 <span id='busuanzi_value_page_pv'>-</span> 次
-  </span>
-</div>
+<p class={cn('m-0 text-xs text-muted-foreground', className)} {...props}>
+  阅读 <span id='busuanzi_value_page_pv'>-</span> 次
+</p>

@@ -8,7 +8,12 @@ interface Props {
 const { class: className } = Astro.props
 ---
 
-<p class={cn('not-prose mt-3 text-center text-xs text-muted-foreground', className)}>
-  本站总访问 <span id='busuanzi_value_site_pv'>-</span> ·
-  访客 <span id='busuanzi_value_site_uv'>-</span>
-</p>
+<div class={cn('not-prose mx-auto mb-8 mt-2 flex justify-center px-2', className)}>
+  <p
+    class='inline-flex flex-wrap items-center justify-center gap-x-2 gap-y-1 rounded-full border bg-muted/50 px-3 py-1.5 text-xs text-muted-foreground'
+  >
+    <span>本站总访问 <span id='busuanzi_value_site_pv' class='text-foreground'>-</span></span>
+    <span class='text-border' aria-hidden='true'>·</span>
+    <span>访客 <span id='busuanzi_value_site_uv' class='text-foreground'>-</span></span>
+  </p>
+</div>

@@ -10,9 +10,10 @@ interface Props {
   meta: SiteMeta
   highlightColor?: string
   back?: string
+  share?: boolean
 }
 
-const { meta, highlightColor, back = '/', ...props } = Astro.props
+const { meta, highlightColor, back = '/', share = false, ...props } = Astro.props
 ---
 
 <PageLayout {meta} {highlightColor} {...props}>
@@ -65,7 +66,20 @@ const { meta, highlightColor, back = '/', ...props } = Astro.props
   <BackToTop header='content-header' content='content'>
     <button
       slot='other-icons'
-      aria-label='Toggle sidebar'
+      type='button'
+      aria-label='分享'
+      title='分享'
+      class:list={[
+        'size-10 flex items-center justify-center rounded-full border-2 border-transparent bg-muted text-muted-foreground duration-300 hover:border-border/75 sm:size-12 lg:hidden',
+        !share && 'hidden'
+      ]}
+      id='share-btn'
+    >
+      <Icon name='link' />
+    </button>
+    <button
+      slot='other-icons'
+      aria-label='目录'
       class='size-10 flex items-center justify-center rounded-full border-2 border-transparent bg-muted text-muted-foreground duration-300 hover:border-border/75 md:hidden sm:size-12'
       id='sidebar-btn'
     >
@@ -99,6 +113,12 @@ const { meta, highlightColor, back = '/', ...props } = Astro.props
   sidebarButton?.addEventListener('click', () => {
     toggleSidebar()
   })
+
+  document.getElementById('share-btn')?.addEventListener('click', () => {
+    document.dispatchEvent(new CustomEvent('share-china-open'))
+  })
+
+  document.documentElement.classList.add('has-floating-actions')
 </script>
 <style>
   @media (min-width: 769px) {

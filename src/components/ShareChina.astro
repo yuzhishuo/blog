@@ -99,18 +99,7 @@ const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${e
     </div>
   </aside>
 
-  {/* —— Mobile: FAB —— */}
-  <button
-    type='button'
-    class='share-fab fixed bottom-[7.5rem] end-4 z-40 flex size-10 items-center justify-center rounded-full border-2 border-transparent bg-muted text-muted-foreground shadow-sm transition-colors hover:border-border/75 hover:text-primary sm:bottom-36 sm:end-8 sm:size-12 lg:hidden'
-    data-action='open-sheet'
-    aria-label='分享'
-    title='分享'
-  >
-    <Icon name='link' class='size-5' />
-  </button>
-
-  {/* —— Mobile: bottom sheet —— */}
+  {/* —— Mobile: bottom sheet (opened from action bar) —— */}
   <div
     class='share-sheet-root fixed inset-0 z-50 hidden lg:hidden'
     data-sheet
@@ -216,6 +205,8 @@ const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${e
       sheet.setAttribute('aria-hidden', 'false')
       document.documentElement.style.overflow = 'hidden'
     }
+    el.addEventListener('share-china-open', () => openSheet())
+    ;(window as any).__openShareChina = openSheet
 
     function closeSheet() {
       if (!sheet) return
@@ -274,5 +265,8 @@ const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${e
   }
 
   document.querySelectorAll('.share-china').forEach(bindShareChina)
+  document.addEventListener('share-china-open', () => {
+    ;(window as any).__openShareChina?.()
+  })
 </script>
 
