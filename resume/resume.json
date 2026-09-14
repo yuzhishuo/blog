@@ -62,10 +62,9 @@
     }
   ],
   "skills": [
-    "熟悉 Linux 内核调度与实时路径：CFS/EEVDF、优先级字段与 PI/boost、中断咬尾与 softirq、PREEMPT_RT 抢占模型；能结合源码梳理 schedule / irq_exit / rt_mutex 主线。",
-    "熟悉内核同步与诊断手段：futex/rt_mutex、锁与阻塞链；能用 ftrace / perf / BPF / Perfetto 做调度与性能分析，并结合 QEMU+GDB 调试内核。",
-    "熟悉车载服务化与诊断中间件：AUTOSAR SOME/IP/SD（含 TP、E2E、序列化）、DoIP/UDS/DoCan；有多轮量产协议栈与诊断平台开发经验。",
-    "了解 AUTOSAR CP/AP、DDS/TSN、IVI 相关工具链；熟悉 ISO 26262-6 功能安全软件流程与文档维护，能评估需求变更对安全活动的影响。",
-    "熟悉 OTA 场景（差分、断点续传、回滚）及 Linux/Android 侧内存泄漏、越界与 CPU/网络 IO 性能排查。"
+    "独立开发并维护 AUTOSAR SOME/IP/SD 协议栈（含 TP、E2E、序列化/反序列化与性能优化），经历四次量产；维护基于 SOME/IP 的场景引擎（门锁/车窗/雨刷等服务化链路）。",
+    "负责自研 AUTOSAR CP 平台 CAN/以太诊断：DoIP（A/M 核）/ UDS / DoCan 两次量产；熟悉极氪/吉利诊断需求，能将非标能力推进到上下游；了解中央网关、域控、座椅、油泵等底软与子系统诊断。",
+    "在新石器负责微内核/插件体系中的数据源、调度器与 Bus（PTP、Cyber 集成与拆仓）；调度器实现任务去重、PIPELINE 并行及车端/仿真时间兼容；青岛已落地运营。",
+    "能用 ftrace / perf / BPF / Perfetto 与 QEMU+GDB 排查调度、中断、锁与性能问题；熟悉 ISO 26262-6 软件功能安全流程与文档，以及 OTA（差分/断点续传/回滚）和 Linux/Android 内存、CPU、IO 排查。"
   ]
 }
