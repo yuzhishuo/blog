@@ -11,7 +11,7 @@ import type { ResumeData } from '@/lib/resume'
 const data = raw as ResumeData
 ---
 
-<PageLayout meta={{ title: '简历', description: '个人简历（不公开索引）' }}>
+<PageLayout meta={{ title: data.name, description: '个人简历（不公开索引）' }}>
   <div class='resume-page-body mx-auto w-full max-w-3xl pb-10 pt-2'>
     <div class='resume-toolbar no-print mb-4 flex justify-end'>
       <button
@@ -41,14 +41,22 @@ const data = raw as ResumeData
         overflow: visible !important;
       }
 
+      /* Hide all site chrome — brand「博客」and nav「简历」live here */
       header-component,
+      header,
       footer,
+      nav,
       .resume-toolbar,
       .no-print,
       #sidebar,
       #sidebar-shade,
-      #action-buttons {
+      #action-buttons,
+      .share-china,
+      .share-rail {
         display: none !important;
+        visibility: hidden !important;
+        height: 0 !important;
+        overflow: hidden !important;
       }
 
       #main-container,
@@ -72,7 +80,23 @@ const data = raw as ResumeData
     }
   </style>
 
-  <script>
-    document.getElementById('resume-print-btn')?.addEventListener('click', () => window.print())
+  <script define:vars={{ printTitle: data.name }}>
+    const screenTitle = document.title
+    const setPrintTitle = () => {
+      document.title = printTitle || ''
+    }
+    const restoreTitle = () => {
+      document.title = screenTitle
+    }
+
+    window.addEventListener('beforeprint', setPrintTitle)
+    window.addEventListener('afterprint', restoreTitle)
+
+    document.getElementById('resume-print-btn')?.addEventListener('click', () => {
+      setPrintTitle()
+      window.print()
+      // Safari may not fire afterprint reliably
+      setTimeout(restoreTitle, 500)
+    })
   </script>
 </PageLayout>
