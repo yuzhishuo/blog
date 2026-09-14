@@ -28,7 +28,7 @@ const data = raw as ResumeData
   <style is:global>
     @page {
       size: A4 portrait;
-      margin: 10mm 12mm;
+      margin: 12mm 12mm;
     }
 
     @media print {
@@ -39,6 +39,10 @@ const data = raw as ResumeData
         height: auto !important;
         min-height: 0 !important;
         overflow: visible !important;
+        /* Comfortable Chinese sans for print — avoid Songti/serif */
+        font-family:
+          'PingFang SC', 'Hiragino Sans GB', 'Noto Sans SC', 'Microsoft YaHei',
+          system-ui, -apple-system, 'Segoe UI', sans-serif !important;
       }
 
       /* Hide all site chrome — brand「博客」and nav「简历」live here */
@@ -71,6 +75,14 @@ const data = raw as ResumeData
         padding: 0 !important;
       }
 
+      #resume-sheet,
+      #resume-sheet .cv,
+      #resume-sheet .cv * {
+        font-family:
+          'PingFang SC', 'Hiragino Sans GB', 'Noto Sans SC', 'Microsoft YaHei',
+          system-ui, -apple-system, 'Segoe UI', sans-serif !important;
+      }
+
       #resume-sheet {
         page-break-after: avoid !important;
         page-break-inside: avoid !important;
@@ -80,10 +92,11 @@ const data = raw as ResumeData
     }
   </style>
 
-  <script define:vars={{ printTitle: data.name }}>
+  <script>
     const screenTitle = document.title
+    // Empty title so browser print headers do not show「简历 • 博客」
     const setPrintTitle = () => {
-      document.title = printTitle || ''
+      document.title = '\u200b'
     }
     const restoreTitle = () => {
       document.title = screenTitle
@@ -95,8 +108,7 @@ const data = raw as ResumeData
     document.getElementById('resume-print-btn')?.addEventListener('click', () => {
       setPrintTitle()
       window.print()
-      // Safari may not fire afterprint reliably
-      setTimeout(restoreTitle, 500)
+      setTimeout(restoreTitle, 800)
     })
   </script>
 </PageLayout>
