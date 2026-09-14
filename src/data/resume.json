@@ -63,7 +63,8 @@
   ],
   "skills": [
     "熟悉 ISO 26262-6 Functional Safety 的安全相关流程，能开展软件功能安全阶段开发并维护相关文档模板；能分析需求变更对流程活动的影响。",
-    "会用 Linux/Android 上常见分析工具排查内存泄漏、内存越界和性能瓶颈，能测 CPU 占用、内存访问情况和网络/IO 性能。",
+    "会用 Linux/Android 常见分析手段排查内存泄漏、越界与性能瓶颈；能结合 ftrace / perf / BPF / Perfetto 看调度与时序，并测 CPU、内存与网络/IO。",
+    "熟悉 Linux 内核调度与实时相关路径（CFS/EEVDF、优先级与 PI、中断与 softirq、PREEMPT_RT），能结合源码与 QEMU+GDB 做问题定位。",
     "熟悉 OTA 应用场景：数据差分、断点续传、回滚等诊断相关开发。",
     "熟悉服务化 / AUTOSAR CP / IVI（影音娱乐）下的工具链开发。"
   ]
