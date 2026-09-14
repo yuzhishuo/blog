@@ -92,11 +92,11 @@ const data = raw as ResumeData
     }
   </style>
 
-  <script>
+  <script define:vars={{ printFileTitle: `${data.name}-${data.phone}` }}>
     const screenTitle = document.title
-    // Empty title so browser print headers do not show「简历 • 博客」
+    // Browser «Save as PDF» default filename comes from document.title
     const setPrintTitle = () => {
-      document.title = '\u200b'
+      document.title = printFileTitle
     }
     const restoreTitle = () => {
       document.title = screenTitle
