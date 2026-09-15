@@ -10,7 +10,7 @@
   "website": "https://yuzhishuo.github.io",
   "summary": [
     "5 年车端系统软件。现独立交付无人车数据源 / 调度 / Bus：IMU、GNSS、Camera、Lidar 统一接入，打通 Cyber；调度保证车云配置一致，仿真支持完美回放。链路已在青岛 Orin 运营。",
-    "此前在 AUTOSAR CP 上把诊断通信从 TcpIp → SoAd → PduR 打到 DoIP / UDS，DoIP 在 TC4D、8295 两次量产；SOME/IP 在 8195 四次量产。稳定性问题能从绑核、调度切换、内存和 IO 追到进程 D 状态。"
+    "此前在 AUTOSAR CP 上打通诊断双通道：TcpIp → SoAd → PduR → DoIP / UDS，以及 CanIf → CanTp → PduR → UDS（DoCAN）。DoIP 在 TC4D、8295 两次量产；SOME/IP 在 8195 四次量产。稳定性问题能从绑核、调度切换、内存和 IO 追到进程 D 状态。"
   ],
   "education": [
     {
@@ -50,7 +50,7 @@
       "end": "2025.11",
       "bullets": [
         "在 A 核 / M 核 RTOS 上独立交付 DoIP + UDS + DoCAN，随 TC4D、8295 两次量产。",
-        "诊断通信整链由我打通并持续调整：TcpIp → SoAd → PduR → DoIP / UDS，并覆盖部分 SM 状态管理，从 TCP/UDP 到诊断服务可闭环。",
+        "诊断通信两条链都由我打通并调整：以太 TcpIp → SoAd → PduR → DoIP / UDS；CAN CanIf → CanTp → PduR → UDS（DoCAN）。两条链在 PduR 汇聚进诊断服务，并覆盖部分 SM 状态管理。",
         "把极氪 / 吉利非标诊断收进自研 AUTOSAR CP 的 CAN / 以太诊断，并向诊断上下游模块推进。",
         "完成中央网关、域控以及座椅、油泵等执行器的底软与子系统诊断开发、量产联调。"
       ]
@@ -69,7 +69,7 @@
     }
   ],
   "skills": [
-    "C/C++，Linux，RTOS，AUTOSAR CP（TcpIp / SoAd / PduR / DoIP / UDS / SOME/IP），Apollo Cyber RT；平台 Orin / 8195 / 8295 / TC4D。",
+    "C/C++，Linux，RTOS，AUTOSAR CP（TcpIp / SoAd / CanIf / CanTp / PduR / DoIP / UDS / SOME/IP），Apollo Cyber RT；平台 Orin / 8195 / 8295 / TC4D。",
     "绑核、调度时序与上下文切换、内存与 IO；ftrace / perf / BPF / Perfetto，ASan / LSan。"
   ]
 }
