@@ -27,5 +27,5 @@ export type ResumeData = {
   summary?: string[]
   education: ResumeEducation[]
   experience: ResumeExperience[]
-  skills: string[]
+  skills?: string[]
 }

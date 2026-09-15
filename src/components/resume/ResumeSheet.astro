@@ -168,16 +168,20 @@ const emailMasked = data.email
     ) : null
   }
 
-  <section class='cv-sec' id='skills'>
-    <h2>专业技能</h2>
-    <div class='cv-skills'>
-      {data.skills.map((s, i) => (
-        <p class='cv-skill'>
-          {i + 1}. {s}
-        </p>
-      ))}
-    </div>
-  </section>
+  {
+    data.skills?.length ? (
+      <section class='cv-sec' id='skills'>
+        <h2>专业技能</h2>
+        <div class='cv-skills'>
+          {data.skills.map((s, i) => (
+            <p class='cv-skill'>
+              {i + 1}. {s}
+            </p>
+          ))}
+        </div>
+      </section>
+    ) : null
+  }
 
   <section class='cv-sec' id='experience'>
     <h2>工作经历</h2>

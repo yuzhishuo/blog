@@ -63,13 +63,12 @@
       "bullets": [
         "独立实现 AUTOSAR SOME/IP / SD，四次量产覆盖 8195 与 Orin。",
         "按量产缺口补齐网卡侧 SOME/IP-TP、E2E、序列化 / 反序列化。",
-        "量产负载下做协议栈性能与稳定性：进程绑核，用工具看调度时序和上下文切换，压内存分配与拷贝路径。",
+        "稳定性做到关键路径：压 SOME/IP 收发（网卡 → socket → TP → 序列化），进程绑核，看时延、排队和内存拷贝。",
+        "用 BPF 和网络工具沿该路径追丢包，区分丢在网卡、套接字还是协议栈内部。",
+        "压力测试覆盖反复拉起与退出流程：stop offer、断连、缓冲和 socket 释放可重复走通，退出不泄漏、不残留。",
         "座舱 / 车身服务化：门锁、车窗、雨刷走 SOME/IP 场景引擎；同时维护 DoIP A 核协议栈。"
       ]
     }
-  ],
-  "skills": [
-    "C/C++，Linux，ThreadX（M 核），AUTOSAR CP（TcpIp / SoAd / CanIf / CanTp / PduR / DoIP / UDS / SOME/IP），Apollo Cyber RT；平台 Orin / 8195 / 8295 / TC4D。",
-    "绑核、调度时序与上下文切换、内存与 IO；ftrace / perf / BPF / Perfetto，ASan / LSan。"
   ]
 }
+
