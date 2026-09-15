@@ -9,8 +9,8 @@
   "github": "yuzhishuo",
   "website": "https://yuzhishuo.github.io",
   "summary": [
-    "5 年车端系统软件，能把协议栈做到量产、把运行时做到运营。现独立交付无人车数据源 / 调度 / Bus：IMU、GNSS、Camera、Lidar 统一接入，打通 Cyber，链路已在青岛 Orin 平台运营。",
-    "此前独立做出 AUTOSAR 中间件：SOME/IP 在 8195 四次量产，DoIP / UDS / DoCAN 在 TC4D、8295 两次量产。擅长从用户态 IO、调度一路追到 Linux 内核状态。"
+    "5 年车端系统软件。现独立交付无人车数据源 / 调度 / Bus：IMU、GNSS、Camera、Lidar 统一接入，打通 Cyber；调度保证车云配置一致，仿真支持完美回放。链路已在青岛 Orin 运营。",
+    "此前在 AUTOSAR CP 上把诊断通信从 SoAd / TcpIp / PduR 打到 UDS，DoIP 在 TC4D、8295 两次量产；SOME/IP 在 8195 四次量产。稳定性问题能从绑核、调度切换、内存和 IO 追到进程 D 状态。"
   ],
   "education": [
     {
@@ -35,11 +35,12 @@
       "start": "2025.11",
       "end": "至今",
       "bullets": [
-        "独立交付无人车运行时三条主干——数据源、调度器、Bus：微内核 + 插件架构，仿真与实车跑同一套。",
-        "打通自研 Bus 与 Cyber 收发，并把 Cyber 从业务仓拆成独立中间件，成为仿真 / 实车共用底座；实车运行时落在 Orin 平台。",
-        "把 IMU / GNSS / Camera / Lidar 收成同一套数据源：统一接口、状态机（初始化 / 运行 / 暂停）和错误回调，设备差异挡在接入层。",
-        "做出仿真-实车一体调度：任务去重、PIPELINE 并行、对齐任务生成时间，车云任务与云云任务在调度层对齐，不再各写一套。",
-        "运营链路丢帧、帧率抖动由我闭环：根因是日志同步落盘把进程打进长时间 D 状态；修掉重 IO 后，该链路随青岛运营上车。"
+        "独立交付无人车运行时：数据源、调度器、Bus。微内核 + 插件架构，仿真与实车同一套；实车落在 Orin。",
+        "打通自研 Bus 与 Cyber 收发，并把 Cyber 从业务仓拆成独立中间件仓库。",
+        "数据源统一接入 IMU / GNSS / Camera / Lidar：同一套接口、状态机（初始化 / 运行 / 暂停）和错误回调。",
+        "调度保证车云配置一致；仿真支持完美回放，同一份记录每次回放结果一致。实现任务去重与 PIPELINE 并行。",
+        "调度落到进程级：绑核，用 ftrace / perf 看调度时序和上下文切换，并结合内存占用排查抖动，避免调度侧抖动传到数据链路。",
+        "稳定性盯 CPU / 内存 / IO。运营丢帧、帧率不稳时 IO 打满、进程长时间 D，根因是日志同步落盘；改落盘后卡顿消失，链路随青岛 Orin 运营上车。"
       ]
     },
     {
@@ -48,10 +49,10 @@
       "start": "2023.11",
       "end": "2025.11",
       "bullets": [
-        "自研 AUTOSAR CP 上独立交出 DoIP（A 核 / M 核）+ UDS + DoCAN，随 TC4D、8295 两次量产上车。",
-        "把极氪 / 吉利非标诊断做成平台能力：CAN / 以太诊断由我往上下游推，主机厂差异收进协议栈而不是散落在各控制器。",
-        "中央网关、域控的底软与诊断从开发打到量产联调闭环。",
-        "座椅、油泵等执行器控制器同样做到底软 + 子系统诊断量产，覆盖网关到执行器的完整诊断链路。"
+        "在 A 核 / M 核 RTOS 上独立交付 DoIP + UDS + DoCAN，随 TC4D、8295 两次量产。",
+        "诊断通信整链由我打通并持续调整：SoAd（TCP / UDP）→ TcpIp → PduR → UDS，并覆盖部分 SM 状态管理，从 socket 到诊断服务可闭环。",
+        "把极氪 / 吉利非标诊断收进自研 AUTOSAR CP 的 CAN / 以太诊断，并向诊断上下游模块推进。",
+        "完成中央网关、域控以及座椅、油泵等执行器的底软与子系统诊断开发、量产联调。"
       ]
     },
     {
@@ -60,17 +61,15 @@
       "start": "2022.06",
       "end": "2023.11",
       "bullets": [
-        "从协议栈写到量产：独立实现 AUTOSAR SOME/IP / SD，8195 平台四次量产。",
-        "按量产缺口补齐栈能力：网卡侧 SOME/IP-TP、E2E、序列化 / 反序列化，并做性能优化。",
-        "座舱 / 车身服务化由该栈托底：门锁、车窗、雨刷走 SOME/IP 场景引擎；同时扛 DoIP A 核协议栈。"
+        "独立实现 AUTOSAR SOME/IP / SD，8195 平台四次量产。",
+        "按量产缺口补齐网卡侧 SOME/IP-TP、E2E、序列化 / 反序列化。",
+        "量产负载下做协议栈性能与稳定性：进程绑核，用工具看调度时序和上下文切换，压内存分配与拷贝路径。",
+        "座舱 / 车身服务化：门锁、车窗、雨刷走 SOME/IP 场景引擎；同时维护 DoIP A 核协议栈。"
       ]
     }
   ],
   "skills": [
-    "语言与平台：C/C++，Linux，AUTOSAR CP，Apollo Cyber RT；量产平台 Orin / 8195 / 8295 / TC4D。",
-    "自动驾驶运行时：多传感器数据源（IMU / GNSS / Camera / Lidar）、调度器、Bus、Cyber 集成。",
-    "车载中间件：SOME/IP / SD / SOME/IP-TP / E2E，DoIP，UDS，DoCAN；座舱服务化与诊断协议栈量产。",
-    "性能与定位：AddressSanitizer / LeakSanitizer、jemalloc；ftrace / perf / BPF / Perfetto 看调度与时序，测 CPU、内存与网络 / IO。",
-    "Linux 内核：公平调度、RT、deadline、优先级与 PI、中断与 softirq、PREEMPT_RT；能结合源码与 QEMU+GDB 做问题定位。"
+    "C/C++，Linux，RTOS，AUTOSAR CP（SoAd / TcpIp / PduR / UDS / DoIP / SOME/IP），Apollo Cyber RT；平台 Orin / 8195 / 8295 / TC4D。",
+    "绑核、调度时序与上下文切换、内存与 IO；ftrace / perf / BPF / Perfetto，ASan / LSan。"
   ]
 }
