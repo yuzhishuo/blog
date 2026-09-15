@@ -39,8 +39,8 @@
         "打通自研 Bus 与 Cyber 收发，并把 Cyber 从业务仓拆成独立中间件仓库。",
         "数据源统一接入 IMU / GNSS / Camera / Lidar：同一套接口、状态机（初始化 / 运行 / 暂停）和错误回调。",
         "调度保证车云配置一致；仿真支持完美回放，同一份记录每次回放结果一致。实现任务去重与 PIPELINE 并行。",
-        "调度落到进程级：绑核，用 ftrace / perf 看调度时序和上下文切换，并结合内存占用排查抖动，避免调度侧抖动传到数据链路。",
-        "稳定性盯 CPU / 内存 / IO。运营丢帧、帧率不稳时进程长时间 D：日志把页写脏后，堵在内核脏页写回线程（writeback flusher / kworker）上；调整写回路径后卡顿消失，链路随青岛 Orin 运营上车。"
+        "调度落到进程级：绑核，用 ftrace / perf / Perfetto 看调度时序和上下文切换，避免调度抖动传到传感器链路。",
+        "用 ASan / LSan 查越界与泄漏，并结合内存占用排查。传感器丢帧、帧率不稳时进程长时间 D：日志把页写脏后，堵在内核脏页写回线程（writeback flusher / kworker）上；调整写回路径后卡顿消失，链路随青岛 Orin 运营上车。"
       ]
     },
     {
@@ -49,7 +49,7 @@
       "start": "2023.11",
       "end": "2025.11",
       "bullets": [
-        "在 A 核 / M 核 RTOS 上独立交付 DoIP + UDS + DoCAN，随 TC4D、8295 两次量产。",
+        "在 A 核与 M 核（M 核 ThreadX）上独立交付 DoIP + UDS + DoCAN，随 TC4D、8295 两次量产。",
         "诊断通信两条链都由我打通并调整：以太 TcpIp → SoAd → PduR → DoIP / UDS；CAN CanIf → CanTp → PduR → UDS（DoCAN）。两条链在 PduR 汇聚进诊断服务，并覆盖部分 SM 状态管理。",
         "把极氪 / 吉利非标诊断收进自研 AUTOSAR CP 的 CAN / 以太诊断，并向诊断上下游模块推进。",
         "完成中央网关、域控以及座椅、油泵等执行器的底软与子系统诊断开发、量产联调。"
@@ -69,7 +69,7 @@
     }
   ],
   "skills": [
-    "C/C++，Linux，RTOS，AUTOSAR CP（TcpIp / SoAd / CanIf / CanTp / PduR / DoIP / UDS / SOME/IP），Apollo Cyber RT；平台 Orin / 8195 / 8295 / TC4D。",
+    "C/C++，Linux，ThreadX（M 核），AUTOSAR CP（TcpIp / SoAd / CanIf / CanTp / PduR / DoIP / UDS / SOME/IP），Apollo Cyber RT；平台 Orin / 8195 / 8295 / TC4D。",
     "绑核、调度时序与上下文切换、内存与 IO；ftrace / perf / BPF / Perfetto，ASan / LSan。"
   ]
 }
