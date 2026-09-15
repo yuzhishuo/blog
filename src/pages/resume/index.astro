@@ -11,7 +11,7 @@ import type { ResumeData } from '@/lib/resume'
 const data = raw as ResumeData
 ---
 
-<PageLayout meta={{ title: data.name, description: '个人简历（不公开索引）' }}>
+<PageLayout meta={{ title: `${data.name} · 简历`, description: '个人简历（不公开索引）' }}>
   <div class='resume-page-body mx-auto w-full max-w-3xl pb-10 pt-2'>
     <div class='resume-toolbar no-print mb-4 flex justify-end'>
       <button
@@ -81,13 +81,6 @@ const data = raw as ResumeData
         font-family:
           'PingFang SC', 'Hiragino Sans GB', 'Noto Sans SC', 'Microsoft YaHei',
           system-ui, -apple-system, 'Segoe UI', sans-serif !important;
-      }
-
-      #resume-sheet {
-        page-break-after: avoid !important;
-        page-break-inside: avoid !important;
-        break-after: avoid-page !important;
-        break-inside: avoid-page !important;
       }
     }
   </style>

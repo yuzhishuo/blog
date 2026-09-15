@@ -155,24 +155,28 @@ const emailMasked = data.email
     }
   </div>
 
-  <section class='cv-sec' id='education'>
-    <h2>教育经历</h2>
-    <ul class='cv-list'>
-      {
-        data.education.map((ed) => (
-          <li class='cv-item'>
-            <p class='cv-strong'>
-              {ed.school}
-              <span class='cv-soft'>
-                {' '}
-                {ed.degree} · {ed.major}
-              </span>
-              <span class='cv-date'> · {ed.start}–{ed.end}</span>
-            </p>
-          </li>
-        ))
-      }
-    </ul>
+  {
+    data.summary?.length ? (
+      <section class='cv-sec' id='summary'>
+        <h2>个人简介</h2>
+        <div class='cv-summary'>
+          {data.summary.map((s) => (
+            <p class='cv-summary-p'>{s}</p>
+          ))}
+        </div>
+      </section>
+    ) : null
+  }
+
+  <section class='cv-sec' id='skills'>
+    <h2>专业技能</h2>
+    <div class='cv-skills'>
+      {data.skills.map((s, i) => (
+        <p class='cv-skill'>
+          {i + 1}. {s}
+        </p>
+      ))}
+    </div>
   </section>
 
   <section class='cv-sec' id='experience'>
@@ -224,15 +228,24 @@ const emailMasked = data.email
     }
   </section>
 
-  <section class='cv-sec' id='skills'>
-    <h2>专业技能</h2>
-    <div class='cv-skills'>
-      {data.skills.map((s, i) => (
-        <p class='cv-skill'>
-          {i + 1}. {s}
-        </p>
-      ))}
-    </div>
+  <section class='cv-sec' id='education'>
+    <h2>教育经历</h2>
+    <ul class='cv-list'>
+      {
+        data.education.map((ed) => (
+          <li class='cv-item'>
+            <p class='cv-strong'>
+              {ed.school}
+              <span class='cv-soft'>
+                {' '}
+                {ed.degree} · {ed.major}
+              </span>
+              <span class='cv-date'> · {ed.start}–{ed.end}</span>
+            </p>
+          </li>
+        ))
+      }
+    </ul>
   </section>
 </div>
 
@@ -440,6 +453,20 @@ const emailMasked = data.email
     margin-top: 1.15rem;
   }
 
+  .cv-summary {
+    margin: 0;
+  }
+
+  .cv-summary-p {
+    margin: 0;
+    text-align: left;
+    color: hsl(var(--foreground) / 0.92);
+  }
+
+  .cv-summary-p + .cv-summary-p {
+    margin-top: 0.35rem;
+  }
+
   .cv-bullets,
   .cv-skills {
     margin: 0.45rem 0 0;
@@ -488,8 +515,8 @@ const emailMasked = data.email
       max-width: none;
       margin: 0;
       color: #111;
-      font-size: 9.2pt;
-      line-height: 1.35;
+      font-size: 10pt;
+      line-height: 1.42;
       text-align: left;
       font-family:
         'PingFang SC', 'Hiragino Sans GB', 'Noto Sans SC', 'Microsoft YaHei',
@@ -529,7 +556,7 @@ const emailMasked = data.email
       color: #111 !important;
     }
     .cv-sec {
-      margin-top: 7pt;
+      margin-top: 10pt;
     }
     .cv-sec > h2 {
       margin-bottom: 4pt;
@@ -564,7 +591,13 @@ const emailMasked = data.email
     }
     .cv-bullet + .cv-bullet,
     .cv-skill + .cv-skill {
-      margin-top: 1pt;
+      margin-top: 2pt;
+    }
+    .cv-summary-p {
+      color: #111 !important;
+    }
+    .cv-summary-p + .cv-summary-p {
+      margin-top: 2pt;
     }
     .cv-links a {
       color: #111;
