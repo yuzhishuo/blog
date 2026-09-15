@@ -10,7 +10,7 @@
   "website": "https://yuzhishuo.github.io",
   "summary": [
     "5 年车端系统软件。现独立交付无人车数据源 / 调度 / Bus：IMU、GNSS、Camera、Lidar 统一接入，打通 Cyber；调度保证车云配置一致，仿真支持完美回放。链路已在青岛 Orin 运营。",
-    "此前在 AUTOSAR CP 上打通诊断双通道：TcpIp → SoAd → PduR → DoIP / UDS，以及 CanIf → CanTp → PduR → UDS（DoCAN）。DoIP 在 TC4D、8295 两次量产；SOME/IP 四次量产覆盖 8195 与 Orin。稳定性问题能从绑核、调度切换、内存和 IO 追到进程 D 状态。"
+    "此前做 AUTOSAR 中间件量产：DoIP / UDS / DoCAN 在 TC4D、8295 两次上车（M 核 ThreadX），SOME/IP 四次量产覆盖 8195 与 Orin。稳定性从绑核、调度、内存、IO 和网络丢包追到现场。"
   ],
   "education": [
     {
