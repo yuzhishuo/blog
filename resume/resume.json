@@ -10,7 +10,7 @@
   "website": "https://yuzhishuo.github.io",
   "summary": [
     "5 年车端系统软件。现独立交付无人车数据源 / 调度 / Bus：IMU、GNSS、Camera、Lidar 统一接入，打通 Cyber；调度保证车云配置一致，仿真支持完美回放。链路已在青岛 Orin 运营。",
-    "此前在 AUTOSAR CP 上打通诊断双通道：TcpIp → SoAd → PduR → DoIP / UDS，以及 CanIf → CanTp → PduR → UDS（DoCAN）。DoIP 在 TC4D、8295 两次量产；SOME/IP 在 8195 四次量产。稳定性问题能从绑核、调度切换、内存和 IO 追到进程 D 状态。"
+    "此前在 AUTOSAR CP 上打通诊断双通道：TcpIp → SoAd → PduR → DoIP / UDS，以及 CanIf → CanTp → PduR → UDS（DoCAN）。DoIP 在 TC4D、8295 两次量产；SOME/IP 四次量产覆盖 8195 与 Orin。稳定性问题能从绑核、调度切换、内存和 IO 追到进程 D 状态。"
   ],
   "education": [
     {
@@ -61,7 +61,7 @@
       "start": "2022.06",
       "end": "2023.11",
       "bullets": [
-        "独立实现 AUTOSAR SOME/IP / SD，8195 平台四次量产。",
+        "独立实现 AUTOSAR SOME/IP / SD，四次量产覆盖 8195 与 Orin。",
         "按量产缺口补齐网卡侧 SOME/IP-TP、E2E、序列化 / 反序列化。",
         "量产负载下做协议栈性能与稳定性：进程绑核，用工具看调度时序和上下文切换，压内存分配与拷贝路径。",
         "座舱 / 车身服务化：门锁、车窗、雨刷走 SOME/IP 场景引擎；同时维护 DoIP A 核协议栈。"
