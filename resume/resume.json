@@ -9,7 +9,7 @@
   "github": "yuzhishuo",
   "website": "https://yuzhishuo.github.io",
   "summary": [
-    "5 年车端系统软件，能把协议栈做到量产、把运行时做到运营。现独立交付无人车数据源 / 调度 / Bus：IMU、GNSS、Camera、Lidar 统一接入，Cyber + PTP 打通，链路已在青岛运营。",
+    "5 年车端系统软件，能把协议栈做到量产、把运行时做到运营。现独立交付无人车数据源 / 调度 / Bus：IMU、GNSS、Camera、Lidar 统一接入，打通 Cyber，链路已在青岛 Orin 平台运营。",
     "此前独立做出 AUTOSAR 中间件：SOME/IP 在 8195 四次量产，DoIP / UDS / DoCAN 在 TC4D、8295 两次量产。擅长从用户态 IO、调度一路追到 Linux 内核状态。"
   ],
   "education": [
@@ -36,7 +36,7 @@
       "end": "至今",
       "bullets": [
         "独立交付无人车运行时三条主干——数据源、调度器、Bus：微内核 + 插件架构，仿真与实车跑同一套。",
-        "打通自研 Bus 与 Cyber：补齐 PTP 时间同步与收发 API，并把 Cyber 从业务仓拆成独立中间件，成为仿真 / 实车共用底座。",
+        "打通自研 Bus 与 Cyber 收发，并把 Cyber 从业务仓拆成独立中间件，成为仿真 / 实车共用底座；实车运行时落在 Orin 平台。",
         "把 IMU / GNSS / Camera / Lidar 收成同一套数据源：统一接口、状态机（初始化 / 运行 / 暂停）和错误回调，设备差异挡在接入层。",
         "做出仿真-实车一体调度：任务去重、PIPELINE 并行、对齐任务生成时间，车云任务与云云任务在调度层对齐，不再各写一套。",
         "运营链路丢帧、帧率抖动由我闭环：根因是日志同步落盘把进程打进长时间 D 状态；修掉重 IO 后，该链路随青岛运营上车。"
@@ -67,8 +67,8 @@
     }
   ],
   "skills": [
-    "语言与平台：C/C++，Linux，AUTOSAR CP，Apollo Cyber RT；量产平台 8195 / 8295 / TC4D。",
-    "自动驾驶运行时：多传感器数据源（IMU / GNSS / Camera / Lidar）、调度器、Bus、PTP 时间同步、Cyber 集成。",
+    "语言与平台：C/C++，Linux，AUTOSAR CP，Apollo Cyber RT；量产平台 Orin / 8195 / 8295 / TC4D。",
+    "自动驾驶运行时：多传感器数据源（IMU / GNSS / Camera / Lidar）、调度器、Bus、Cyber 集成。",
     "车载中间件：SOME/IP / SD / SOME/IP-TP / E2E，DoIP，UDS，DoCAN；座舱服务化与诊断协议栈量产。",
     "性能与定位：AddressSanitizer / LeakSanitizer、jemalloc；ftrace / perf / BPF / Perfetto 看调度与时序，测 CPU、内存与网络 / IO。",
     "Linux 内核：公平调度、RT、deadline、优先级与 PI、中断与 softirq、PREEMPT_RT；能结合源码与 QEMU+GDB 做问题定位。"
