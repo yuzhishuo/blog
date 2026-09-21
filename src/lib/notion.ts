@@ -9,7 +9,6 @@
  */
 import { fileURLToPath } from 'node:url'
 
-import { notionLoader } from '@luanroger/notion-astro-loader'
 import type { Loader, LoaderContext, ParseDataOptions } from 'astro/loaders'
 import { loadEnv } from 'vite'
 
@@ -192,18 +191,22 @@ export function createNotionBlogLoader(): Loader {
   const token = getNotionToken()
   if (!token) return emptyNotionLoader()
 
-  const dataSourceId = getNotionDataSourceId()
-  const base = notionLoader({
-    auth: token,
-    dataSourceId,
-    filter: notionPublishedFilter,
-    collectionName: 'notionBlog',
-    imageSavePath: 'assets/images/notion'
-  })
-
   return {
     name: 'notion-blog',
     async load(context: LoaderContext) {
+      // Import only when a token exists. The package pulls in `astro:assets`,
+      // which crashes content-config evaluation during `astro dev` if loaded
+      // at module top-level (collections then look empty).
+      const { notionLoader } = await import('@luanroger/notion-astro-loader')
+      const dataSourceId = getNotionDataSourceId()
+      const base = notionLoader({
+        auth: token,
+        dataSourceId,
+        filter: notionPublishedFilter,
+        collectionName: 'notionBlog',
+        imageSavePath: 'assets/images/notion'
+      })
+
       // Always refresh Notion at build. The upstream loader skips pages when
       // store digest === last_edited_time; CI / build:ci must not reuse stale entries.
       context.store.clear()

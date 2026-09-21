@@ -3,15 +3,16 @@
  * Clean editorial resume — fully left-aligned.
  * Name / phone / email / company stay masked until the visitor clicks the eye.
  */
-import type { ResumeData } from '@/lib/resume'
+import type { ResolvedInsight, ResumeData } from '@/lib/resume'
 import { cn } from 'astro-pure/utils'
 
 interface Props {
   data: ResumeData
+  insights?: ResolvedInsight[]
   class?: string
 }
 
-const { data, class: className } = Astro.props
+const { data, insights = [], class: className } = Astro.props
 
 const maskKeep = (value: string, keepStart = 0, keepEnd = 0) => {
   if (!value) return ''
@@ -22,6 +23,12 @@ const maskKeep = (value: string, keepStart = 0, keepEnd = 0) => {
     value.slice(value.length - keepEnd)
   )
 }
+
+const escapeHtml = (s: string) =>
+  s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+
+const withBold = (s: string) =>
+  escapeHtml(s).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
 
 const nameMasked = data.name ? '•'.repeat(Math.max(data.name.length, 2)) : ''
 const phoneMasked = data.phone ? maskKeep(data.phone, 3, 2) : ''
@@ -134,25 +141,6 @@ const emailMasked = data.email
         .filter(Boolean)
         .join('  ·  ')}
     </p>
-    {
-      (data.website || data.github) && (
-        <p class='cv-links'>
-          {data.website && (
-            <a href={data.website} target='_blank' rel='noopener'>
-              {data.website.replace(/^https?:\/\//, '')}
-            </a>
-          )}
-          {data.github && (
-            <>
-              {data.website && <span class='dot'>·</span>}
-              <a href={`https://github.com/${data.github}`} target='_blank' rel='noopener'>
-                GitHub/{data.github}
-              </a>
-            </>
-          )}
-        </p>
-      )
-    }
   </div>
 
   {
@@ -161,22 +149,7 @@ const emailMasked = data.email
         <h2>个人简介</h2>
         <div class='cv-summary'>
           {data.summary.map((s) => (
-            <p class='cv-summary-p'>{s}</p>
-          ))}
-        </div>
-      </section>
-    ) : null
-  }
-
-  {
-    data.skills?.length ? (
-      <section class='cv-sec' id='skills'>
-        <h2>专业技能</h2>
-        <div class='cv-skills'>
-          {data.skills.map((s, i) => (
-            <p class='cv-skill'>
-              {i + 1}. {s}
-            </p>
+            <p class='cv-summary-p' set:html={withBold(s)} />
           ))}
         </div>
       </section>
@@ -232,6 +205,63 @@ const emailMasked = data.email
     }
   </section>
 
+  {
+    data.skills?.length ? (
+      <section class='cv-sec' id='skills'>
+        <h2>
+          专业技能
+          <button
+            type='button'
+            class='cv-print-toggle no-print'
+            data-print-hide='skills'
+            aria-label='打印时隐藏本节'
+            title='打印时隐藏本节'
+          >
+            <svg class='cv-print-on' viewBox='0 0 24 24' width='14' height='14' aria-hidden='true'>
+              <path
+                fill='currentColor'
+                d='M6 9V3h12v6h-2V5H8v4H6zm14 2a2 2 0 0 1 2 2v5h-4v4H6v-4H2v-5a2 2 0 0 1 2-2h16zM8 17v2h8v-2H8zm10-4.5a1 1 0 1 0 0-2 1 1 0 0 0 0 2z'
+              />
+            </svg>
+            <svg class='cv-print-off' viewBox='0 0 24 24' width='14' height='14' aria-hidden='true'>
+              <path
+                fill='currentColor'
+                d='M3.3 2 2 3.3 6.7 8H4a2 2 0 0 0-2 2v5h4v4h9.7l3 3L20 20.7 3.3 2zM8 17v2h6.7l-2-2H8zm12-4v1.7l-2-2V13h2zm0-2h-4.7l-4-4H18V3H8.7l-2-2H20v8a2 2 0 0 1 2 2v5h-2.7l-2-2H20v-5a2 2 0 0 0-2-2z'
+              />
+            </svg>
+          </button>
+        </h2>
+        <div class='cv-skills'>
+          {data.skills.map((s, i) => (
+            <p class='cv-skill' data-print-item={`skill-${i}`}>
+              <span class='cv-skill-text'>{s}</span>
+              <button
+                type='button'
+                class='cv-print-toggle no-print'
+                data-print-hide={`skill-${i}`}
+                aria-label='打印时隐藏此项'
+                title='打印时隐藏此项'
+              >
+                <svg class='cv-print-on' viewBox='0 0 24 24' width='14' height='14' aria-hidden='true'>
+                  <path
+                    fill='currentColor'
+                    d='M6 9V3h12v6h-2V5H8v4H6zm14 2a2 2 0 0 1 2 2v5h-4v4H6v-4H2v-5a2 2 0 0 1 2-2h16zM8 17v2h8v-2H8zm10-4.5a1 1 0 1 0 0-2 1 1 0 0 0 0 2z'
+                  />
+                </svg>
+                <svg class='cv-print-off' viewBox='0 0 24 24' width='14' height='14' aria-hidden='true'>
+                  <path
+                    fill='currentColor'
+                    d='M3.3 2 2 3.3 6.7 8H4a2 2 0 0 0-2 2v5h4v4h9.7l3 3L20 20.7 3.3 2zM8 17v2h6.7l-2-2H8zm12-4v1.7l-2-2V13h2zm0-2h-4.7l-4-4H18V3H8.7l-2-2H20v8a2 2 0 0 1 2 2v5h-2.7l-2-2H20v-5a2 2 0 0 0-2-2z'
+                  />
+                </svg>
+              </button>
+            </p>
+          ))}
+        </div>
+      </section>
+    ) : null
+  }
+
   <section class='cv-sec' id='education'>
     <h2>教育经历</h2>
     <ul class='cv-list'>
@@ -251,6 +281,48 @@ const emailMasked = data.email
       }
     </ul>
   </section>
+
+  {
+    insights.length ? (
+      <section class='cv-sec' id='insights'>
+        <h2>
+          原创文章
+          <button
+            type='button'
+            class='cv-print-toggle no-print'
+            data-print-hide='insights'
+            aria-label='打印时隐藏本节'
+            title='打印时隐藏本节'
+          >
+            <svg class='cv-print-on' viewBox='0 0 24 24' width='14' height='14' aria-hidden='true'>
+              <path
+                fill='currentColor'
+                d='M6 9V3h12v6h-2V5H8v4H6zm14 2a2 2 0 0 1 2 2v5h-4v4H6v-4H2v-5a2 2 0 0 1 2-2h16zM8 17v2h8v-2H8zm10-4.5a1 1 0 1 0 0-2 1 1 0 0 0 0 2z'
+              />
+            </svg>
+            <svg class='cv-print-off' viewBox='0 0 24 24' width='14' height='14' aria-hidden='true'>
+              <path
+                fill='currentColor'
+                d='M3.3 2 2 3.3 6.7 8H4a2 2 0 0 0-2 2v5h4v4h9.7l3 3L20 20.7 3.3 2zM8 17v2h6.7l-2-2H8zm12-4v1.7l-2-2V13h2zm0-2h-4.7l-4-4H18V3H8.7l-2-2H20v8a2 2 0 0 1 2 2v5h-2.7l-2-2H20v-5a2 2 0 0 0-2-2z'
+              />
+            </svg>
+          </button>
+        </h2>
+        <div class='cv-insights'>
+          {insights.map((item, i) => (
+            <p class='cv-insight'>
+              <span class='cv-insight-idx'>{i + 1}. </span>
+              <a class='cv-insight-title' href={item.url} target='_blank' rel='noreferrer'>
+                {item.title}
+              </a>
+              {item.extra ? <span class='cv-insight-extra'>({item.extra})</span> : null}
+              {item.note ? <span class='cv-insight-note'>: {item.note}</span> : null}
+            </p>
+          ))}
+        </div>
+      </section>
+    ) : null
+  }
 </div>
 
 <script>
@@ -267,6 +339,53 @@ const emailMasked = data.email
         const shown = wrap.classList.toggle('is-shown')
         btn.setAttribute('aria-label', shown ? '隐藏' : btn.title || '显示')
         btn.setAttribute('aria-pressed', shown ? 'true' : 'false')
+      })
+    })
+
+    const printHideKey = 'resume-print-hide'
+    const printHideTarget = (id: string) =>
+      id === 'skills'
+        ? root.querySelector('#skills')
+        : id === 'insights'
+          ? root.querySelector('#insights')
+          : root.querySelector(`[data-print-item="${id}"]`)
+
+    const setPrintHidden = (id: string, hidden: boolean) => {
+      const el = printHideTarget(id)
+      const btn = root.querySelector<HTMLButtonElement>(`[data-print-hide="${id}"]`)
+      if (!el || !btn) return
+      el.classList.toggle('no-print', hidden)
+      el.classList.toggle('is-print-hidden', hidden)
+      btn.setAttribute('aria-pressed', hidden ? 'true' : 'false')
+      btn.setAttribute('aria-label', hidden ? '打印时显示' : (btn.title || '打印时隐藏'))
+    }
+
+    const readPrintHidden = (): string[] => {
+      try {
+        const raw = localStorage.getItem(printHideKey)
+        return raw ? (JSON.parse(raw) as string[]) : []
+      } catch {
+        return []
+      }
+    }
+
+    const writePrintHidden = (ids: string[]) => {
+      localStorage.setItem(printHideKey, JSON.stringify(ids))
+    }
+
+    let hiddenIds = readPrintHidden()
+    hiddenIds.forEach((id) => setPrintHidden(id, true))
+
+    root.querySelectorAll<HTMLButtonElement>('[data-print-hide]').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault()
+        e.stopPropagation()
+        const id = btn.dataset.printHide
+        if (!id) return
+        const next = !hiddenIds.includes(id)
+        hiddenIds = next ? [...hiddenIds, id] : hiddenIds.filter((x) => x !== id)
+        setPrintHidden(id, next)
+        writePrintHidden(hiddenIds)
       })
     })
   }
@@ -405,6 +524,9 @@ const emailMasked = data.email
   }
 
   .cv-sec > h2 {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
     margin: 0 0 0.85rem;
     padding-bottom: 0.4rem;
     font-size: 1rem;
@@ -467,6 +589,10 @@ const emailMasked = data.email
     color: hsl(var(--foreground) / 0.92);
   }
 
+  .cv-summary-p strong {
+    font-weight: 700;
+  }
+
   .cv-summary-p + .cv-summary-p {
     margin-top: 0.35rem;
   }
@@ -489,6 +615,110 @@ const emailMasked = data.email
     text-indent: 0 !important;
   }
 
+  .cv-skill {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+
+  .cv-skills {
+    counter-reset: cv-skill;
+  }
+
+  .cv-skill {
+    counter-increment: cv-skill;
+  }
+
+  .cv-skill-text {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .cv-skill-text::before {
+    content: counter(cv-skill) '. ';
+  }
+
+  .cv-insights {
+    margin: 0;
+  }
+
+  .cv-insight {
+    margin: 0;
+    text-align: left;
+    color: hsl(var(--foreground) / 0.92);
+  }
+
+  .cv-insight + .cv-insight {
+    margin-top: 0.4rem;
+  }
+
+  .cv-insight-title {
+    font-weight: 600;
+    color: hsl(var(--primary));
+    text-decoration: none;
+  }
+
+  .cv-insight-title:hover {
+    text-decoration: underline;
+  }
+
+  .cv-insight-extra {
+    color: hsl(var(--muted-foreground));
+  }
+
+  .cv-print-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-left: 0.1rem;
+    padding: 0.1rem;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: hsl(var(--muted-foreground));
+    cursor: pointer;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s ease, color 0.15s ease, background 0.15s ease;
+  }
+
+  .cv-sec > h2:hover .cv-print-toggle,
+  .cv-sec > h2:focus-within .cv-print-toggle,
+  .cv-skill:hover .cv-print-toggle,
+  .cv-skill:focus-within .cv-print-toggle,
+  .is-print-hidden > h2 .cv-print-toggle,
+  .cv-skill.is-print-hidden .cv-print-toggle,
+  .cv-print-toggle:focus-visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .cv-print-toggle:hover {
+    color: hsl(var(--primary));
+    background: hsl(var(--muted) / 0.55);
+  }
+
+  .cv-print-off {
+    display: none;
+  }
+
+  .is-print-hidden > h2 .cv-print-on,
+  .cv-skill.is-print-hidden .cv-print-on {
+    display: none;
+  }
+
+  .is-print-hidden > h2 .cv-print-off,
+  .cv-skill.is-print-hidden .cv-print-off {
+    display: block;
+  }
+
+  #skills.is-print-hidden,
+  #insights.is-print-hidden,
+  .cv-skill.is-print-hidden {
+    opacity: 0.42;
+  }
+
   .cv-bullet::before,
   .cv-skill::before {
     content: none !important;
@@ -508,7 +738,8 @@ const emailMasked = data.email
 
   @media (hover: none) {
     /* Touch: always show the eye so people can tap */
-    .cv-eye {
+    .cv-eye,
+    .cv-print-toggle {
       opacity: 0.75;
       pointer-events: auto;
     }
@@ -519,8 +750,8 @@ const emailMasked = data.email
       max-width: none;
       margin: 0;
       color: #111;
-      font-size: 10.5pt;
-      line-height: 1.46;
+      font-size: 10.75pt;
+      line-height: 1.5;
       text-align: left;
       font-family:
         'PingFang SC', 'Hiragino Sans GB', 'Noto Sans SC', 'Microsoft YaHei',
@@ -603,21 +834,48 @@ const emailMasked = data.email
     .cv-summary-p + .cv-summary-p {
       margin-top: 3.5pt;
     }
-    .cv-links a {
-      color: #111;
-      text-decoration: none;
+    .cv-insight + .cv-insight {
+      margin-top: 3pt;
     }
-    .cv-head {
+    .cv-insight,
+    .cv-insight-extra,
+    .cv-insight-note {
+      color: #111 !important;
+    }
+    .cv-insight-title,
+    .cv-links a {
+      color: #0563c1 !important;
+      text-decoration: underline;
+    }
+    .cv-head,
+    .cv-job,
+    .cv-skill {
       break-inside: avoid;
       page-break-inside: avoid;
     }
     #education {
-      page-break-before: avoid;
-      break-before: avoid-page;
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+
+    #resume-sheet {
+      zoom: var(--cv-fit, 1);
+    }
+
+    @supports not (zoom: 1) {
+      #resume-sheet {
+        transform: scale(var(--cv-fit, 1));
+        transform-origin: top left;
+      }
     }
 
     /* Print always shows real contact / company */
-    .cv-eye {
+    .cv-eye,
+    .cv-print-toggle {
+      display: none !important;
+    }
+
+    #skills:not(:has(.cv-skill:not(.no-print))) {
       display: none !important;
     }
     .cv-secret-mask {
@@ -626,5 +884,77 @@ const emailMasked = data.email
     .cv-secret-real {
       display: inline !important;
     }
+  }
+
+  .cv.is-print-layout {
+    width: 182mm;
+    max-width: none;
+    font-size: 10.75pt;
+    line-height: 1.5;
+    font-family:
+      'PingFang SC', 'Hiragino Sans GB', 'Noto Sans SC', 'Microsoft YaHei',
+      system-ui, -apple-system, 'Segoe UI', sans-serif;
+  }
+
+  .cv.is-print-layout .cv-head {
+    margin-bottom: 9pt;
+    padding-bottom: 7pt;
+  }
+
+  .cv.is-print-layout .cv-name {
+    margin-bottom: 4pt;
+    font-size: 16.5pt;
+  }
+
+  .cv.is-print-layout .cv-line,
+  .cv.is-print-layout .cv-links,
+  .cv.is-print-layout .cv-soft.m0,
+  .cv.is-print-layout .cv-date {
+    font-size: 9.5pt;
+  }
+
+  .cv.is-print-layout .cv-sec {
+    margin-top: 11pt;
+  }
+
+  .cv.is-print-layout .cv-sec > h2 {
+    margin-bottom: 5pt;
+    padding-bottom: 2.5pt;
+    font-size: 11pt;
+  }
+
+  .cv.is-print-layout .cv-list {
+    gap: 3.5pt;
+  }
+
+  .cv.is-print-layout .cv-job + .cv-job {
+    margin-top: 8pt;
+  }
+
+  .cv.is-print-layout .cv-bullets,
+  .cv.is-print-layout .cv-skills {
+    margin-top: 3.5pt;
+  }
+
+  .cv.is-print-layout .cv-bullet + .cv-bullet,
+  .cv.is-print-layout .cv-skill + .cv-skill,
+  .cv.is-print-layout .cv-summary-p + .cv-summary-p,
+  .cv.is-print-layout .cv-insight + .cv-insight {
+    margin-top: 3pt;
+  }
+
+  .cv.is-print-layout .cv-eye,
+  .cv.is-print-layout .cv-print-toggle,
+  .cv.is-print-layout .no-print,
+  .cv.is-print-layout .cv-secret-mask {
+    display: none !important;
+  }
+
+  .cv.is-print-layout .cv-secret-real {
+    display: inline !important;
+  }
+
+  .cv.is-print-layout .is-print-hidden {
+    opacity: 1;
   }
 </style>

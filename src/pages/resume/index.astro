@@ -7,13 +7,16 @@ import PageLayout from '@/layouts/BaseLayout.astro'
 import ResumeSheet from '@/components/resume/ResumeSheet.astro'
 import raw from '@/data/resume.json'
 import type { ResumeData } from '@/lib/resume'
+import { resolveInsights } from '@/lib/unfurl'
 
 const data = raw as ResumeData
+const insights = await resolveInsights(data.insights)
 ---
 
 <PageLayout meta={{ title: `${data.name} · 简历`, description: '个人简历（不公开索引）' }}>
   <div class='resume-page-body mx-auto w-full max-w-3xl pb-10 pt-2'>
-    <div class='resume-toolbar no-print mb-4 flex justify-end'>
+    <div class='resume-toolbar no-print mb-4 flex items-center justify-between gap-3'>
+      <p class='m-0 text-xs text-muted-foreground'>专业技能 / 文章旁的打印机图标：打印时隐藏。原创文章在 resume.json 里贴链接即可自动取标题</p>
       <button
         type='button'
         id='resume-print-btn'
@@ -22,13 +25,13 @@ const data = raw as ResumeData
         打印
       </button>
     </div>
-    <ResumeSheet data={data} />
+    <ResumeSheet data={data} insights={insights} />
   </div>
 
   <style is:global>
     @page {
       size: A4 portrait;
-      margin: 11mm 12mm;
+      margin: 12mm 14mm;
     }
 
     @media print {
@@ -82,12 +85,21 @@ const data = raw as ResumeData
           'PingFang SC', 'Hiragino Sans GB', 'Noto Sans SC', 'Microsoft YaHei',
           system-ui, -apple-system, 'Segoe UI', sans-serif !important;
       }
+
+      #resume-sheet a {
+        color: #0563c1 !important;
+        text-decoration: underline !important;
+      }
     }
   </style>
 
-  <script define:vars={{ printFileTitle: `${data.name}-${data.phone}` }}>
+  <script define:vars={{ printFileTitle: `${data.name}-${data.intent}-${data.phone}` }}>
     const screenTitle = document.title
-    // Browser «Save as PDF» default filename comes from document.title
+    const sheet = () => document.getElementById('resume-sheet')
+    const mmPx = (mm) => (mm * 96) / 25.4
+    // A4 minus @page margin 12mm 14mm
+    const pageHeightPx = mmPx(297 - 24)
+
     const setPrintTitle = () => {
       document.title = printFileTitle
     }
@@ -95,13 +107,62 @@ const data = raw as ResumeData
       document.title = screenTitle
     }
 
-    window.addEventListener('beforeprint', setPrintTitle)
-    window.addEventListener('afterprint', restoreTitle)
+    const clearPrintFit = () => {
+      sheet()?.style.removeProperty('--cv-fit')
+    }
+
+    const measurePrintHeight = () => {
+      const source = sheet()
+      if (!source) return 0
+      const clone = source.cloneNode(true)
+      clone.id = ''
+      clone.classList.add('is-print-layout')
+      clone.style.cssText =
+        'position:absolute;left:-140vw;top:0;visibility:hidden;pointer-events:none;zoom:1;transform:none;'
+      document.body.appendChild(clone)
+      const height = clone.scrollHeight
+      clone.remove()
+      return height
+    }
+
+    const fitPrintToPages = () => {
+      const root = sheet()
+      if (!root) return
+      const height = measurePrintHeight()
+      if (!height) {
+        clearPrintFit()
+        return
+      }
+      const pages = height / pageHeightPx
+      const last = pages - Math.floor(pages)
+      const leftover = last < 0.02 ? 0 : last
+      // Last page less than 1/4 full → shrink onto the previous page (usually 1).
+      if (pages > 1 && leftover > 0 && leftover < 0.25) {
+        const targetH = Math.max(1, Math.floor(pages)) * pageHeightPx * 0.992
+        const fit = Math.max(0.8, Math.min(1, targetH / height))
+        root.style.setProperty('--cv-fit', fit.toFixed(4))
+      } else {
+        clearPrintFit()
+      }
+    }
+
+    window.addEventListener('beforeprint', () => {
+      fitPrintToPages()
+      setPrintTitle()
+    })
+    window.addEventListener('afterprint', () => {
+      clearPrintFit()
+      restoreTitle()
+    })
 
     document.getElementById('resume-print-btn')?.addEventListener('click', () => {
+      fitPrintToPages()
       setPrintTitle()
       window.print()
-      setTimeout(restoreTitle, 800)
+      setTimeout(() => {
+        clearPrintFit()
+        restoreTitle()
+      }, 800)
     })
   </script>
 </PageLayout>

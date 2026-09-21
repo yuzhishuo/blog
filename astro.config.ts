@@ -7,6 +7,7 @@ import remarkMath from 'remark-math'
 
 // Local integrations
 import rehypeAutolinkHeadings from './src/plugins/rehype-auto-link-headings.ts'
+import resumeJsonWatch from './src/plugins/resume-json-watch.ts'
 // Shiki
 import {
   addCollapse,
@@ -31,6 +32,9 @@ export default defineConfig({
   // base: '/pure-blog/',
   trailingSlash: 'never',
   server: { host: true },
+  vite: {
+    plugins: [resumeJsonWatch()]
+  },
   prefetch: {
     defaultStrategy: 'viewport'
   },
