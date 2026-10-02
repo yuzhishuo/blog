@@ -610,9 +610,17 @@ const emailMasked = data.email
   .cv-skill {
     margin: 0;
     padding: 0 !important;
-    padding-inline-start: 0 !important;
     text-align: left;
     text-indent: 0 !important;
+  }
+
+  .cv-bullet {
+    position: relative;
+    padding-inline-start: 1em !important;
+  }
+
+  .cv-skill {
+    padding-inline-start: 0 !important;
   }
 
   .cv-skill {
@@ -719,9 +727,21 @@ const emailMasked = data.email
     opacity: 0.42;
   }
 
-  .cv-bullet::before,
   .cv-skill::before {
     content: none !important;
+  }
+
+  .cv-bullet::before {
+    content: '' !important;
+    position: absolute;
+    inset-inline-start: 0.05em;
+    top: 0.62em;
+    width: 0.42em;
+    height: 0.42em;
+    border-radius: 50%;
+    background: currentColor;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 
   .cv-bullet + .cv-bullet {
@@ -821,8 +841,28 @@ const emailMasked = data.email
     .cv-bullet,
     .cv-skill {
       padding: 0 !important;
-      padding-inline-start: 0 !important;
       text-indent: 0 !important;
+    }
+
+    .cv-bullet {
+      padding-inline-start: 1em !important;
+    }
+
+    .cv-bullet::before {
+      content: '' !important;
+      position: absolute;
+      inset-inline-start: 0.05em;
+      top: 0.45em;
+      width: 0.42em;
+      height: 0.42em;
+      border-radius: 50%;
+      background: #111 !important;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    .cv-skill {
+      padding-inline-start: 0 !important;
     }
     .cv-bullet + .cv-bullet,
     .cv-skill + .cv-skill {
