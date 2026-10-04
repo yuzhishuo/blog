@@ -1,0 +1,508 @@
+---
+/**
+ * One spider already on the page. It does not fetch anything.
+ * The body stays small. Eight legs use a staggered gait and, at a
+ * paragraph break, the front feet latch onto the next line before the
+ * body crosses.
+ */
+---
+
+<canvas id='web-crawler-silk' aria-hidden='true'></canvas>
+<div id='web-crawler-mark' aria-hidden='true'></div>
+
+<script>
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  const path = location.pathname.replace(/\/$/, '') || '/'
+  const article = document.getElementById('content')
+
+  if (!reduced && article && path !== '/resume') {
+    const silk = document.getElementById('web-crawler-silk') as HTMLCanvasElement
+    const mark = document.getElementById('web-crawler-mark') as HTMLDivElement
+    const ctx = silk.getContext('2d')
+
+    type Line = { x: number; y: number; w: number }
+    type Pt = { x: number; y: number }
+    type Foot = { x: number; y: number; tx: number; ty: number; hold: Pt | null }
+
+    const L1 = 28
+    const L2 = 26
+    const slots = [26, 10, -10, -26]
+    const ink = '#ff6a1f'
+    const feet: Foot[] = Array.from({ length: 8 }, () => ({
+      x: 0,
+      y: 0,
+      tx: 0,
+      ty: 0,
+      hold: null
+    }))
+    let seeded = false
+
+    const spider: {
+      phase: 'move' | 'hold'
+      from: Pt
+      to: Pt
+      t: number
+      dur: number
+      holdLeft: number
+      wobble: number
+      trail: { x: number; y: number; at: number }[]
+      pos: Pt
+      heading: number
+      seeded: boolean
+    } = {
+      phase: 'hold',
+      from: { x: 0, y: 0 },
+      to: { x: 0, y: 0 },
+      t: 1,
+      dur: 0.4,
+      holdLeft: 0,
+      wobble: 0,
+      trail: [],
+      pos: { x: 0, y: 0 },
+      heading: Math.PI / 2,
+      seeded: false
+    }
+
+    function linesInView(): Line[] {
+      const blocks = article.querySelectorAll('p, li, h2, h3, h4, blockquote')
+      const out: Line[] = []
+      const top = 64
+      const bottom = window.innerHeight - 28
+      blocks.forEach((el) => {
+        if (el.closest('pre, .astro-code, nav, header, footer')) {
+          return
+        }
+        const range = document.createRange()
+        range.selectNodeContents(el)
+        const rects = range.getClientRects()
+        for (let i = 0; i < rects.length; i++) {
+          const r = rects[i]
+          if (r.width < 72 || r.height < 8) {
+            continue
+          }
+          if (r.bottom < top || r.top > bottom) {
+            continue
+          }
+          out.push({
+            x: r.left + 6,
+            y: r.top + r.height * 0.55,
+            w: Math.max(12, r.width - 12)
+          })
+        }
+      })
+      return out
+    }
+
+    function isCjk(ch: string): boolean {
+      const c = ch.codePointAt(0) ?? 0
+      return (c >= 0x3400 && c <= 0x9fff) || (c >= 0xf900 && c <= 0xfaff)
+    }
+
+    let lastFloatKey = ''
+    let lastFloatAt = 0
+
+    function cyberOn(): boolean {
+      return document.documentElement.classList.contains('cyber')
+    }
+
+    function floatWord(rect: DOMRect, text: string, now: number) {
+      const key = `${text}@${Math.round(rect.left)}:${Math.round(rect.top)}`
+      if (key === lastFloatKey || now - lastFloatAt < 140) {
+        return
+      }
+      if (document.querySelectorAll('.cyber-float').length > 14) {
+        return
+      }
+      lastFloatKey = key
+      lastFloatAt = now
+      const ghost = document.createElement('span')
+      ghost.className = 'cyber-float'
+      ghost.textContent = text
+      ghost.style.left = `${rect.left}px`
+      ghost.style.top = `${rect.top}px`
+      ghost.style.font = getComputedStyle(article).font
+      ghost.style.fontSize = `${Math.max(12, rect.height * 0.92)}px`
+      ghost.style.lineHeight = `${rect.height}px`
+      ghost.addEventListener('animationend', () => {
+        ghost.remove()
+      })
+      document.body.appendChild(ghost)
+    }
+
+    function wordAt(x: number, y: number): { rect: DOMRect; text: string } | null {
+      const pos = document.caretPositionFromPoint?.(x, y)
+      const node = pos?.offsetNode
+      const offset = pos?.offset ?? 0
+      if (!node || node.nodeType !== Node.TEXT_NODE || !article.contains(node)) {
+        return null
+      }
+      const text = node.textContent ?? ''
+      if (!text[offset] && !text[offset - 1]) {
+        return null
+      }
+      const here = text[offset] ?? text[offset - 1] ?? ''
+      let a = Math.min(offset, text.length - 1)
+      let b = a + 1
+      if (isCjk(here)) {
+        a = Math.max(0, a)
+        b = Math.min(text.length, a + 2)
+      } else {
+        while (a > 0 && /\S/.test(text[a - 1] ?? '')) {
+          a--
+        }
+        while (b < text.length && /\S/.test(text[b] ?? '')) {
+          b++
+        }
+      }
+      if (b - a < 1) {
+        return null
+      }
+      const range = document.createRange()
+      range.setStart(node, a)
+      range.setEnd(node, b)
+      const rect = range.getBoundingClientRect()
+      if (rect.width < 2) {
+        return null
+      }
+      return { rect, text: text.slice(a, b) }
+    }
+
+    function resizeSilk() {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2)
+      silk.width = Math.floor(window.innerWidth * dpr)
+      silk.height = Math.floor(window.innerHeight * dpr)
+      silk.style.width = `${window.innerWidth}px`
+      silk.style.height = `${window.innerHeight}px`
+      ctx?.setTransform(dpr, 0, 0, dpr, 0, 0)
+    }
+
+    function clamp(n: number, lo: number, hi: number): number {
+      return Math.min(hi, Math.max(lo, n))
+    }
+
+    function aimFor(i: number, hip: Pt, heading: number, reach: Pt | null): Pt {
+      const along = slots[i % 4]
+      const side = i < 4 ? -1 : 1
+      const perp = heading + Math.PI / 2
+      if (reach && along > 0) {
+        return {
+          x: reach.x + Math.cos(perp) * side * 9,
+          y: reach.y + Math.sin(perp) * side * 9
+        }
+      }
+      return {
+        x: hip.x + Math.cos(heading) * along + Math.cos(perp) * side * 32,
+        y: hip.y + Math.sin(heading) * along + Math.sin(perp) * side * 32
+      }
+    }
+
+    function stepFeet(now: number, dt: number, hip: Pt, heading: number, reach: Pt | null) {
+      for (let i = 0; i < feet.length; i++) {
+        const foot = feet[i]
+        const phase = (now / 460 + (i % 2) * 0.5 + (i % 4) * 0.05) % 1
+        const lifting = phase < 0.38
+        if (!seeded) {
+          const aim = aimFor(i, hip, heading, reach)
+          foot.x = aim.x
+          foot.y = aim.y
+          foot.tx = aim.x
+          foot.ty = aim.y
+          foot.hold = { x: aim.x, y: aim.y }
+        } else if (lifting) {
+          const aim = aimFor(i, hip, heading, reach)
+          const lift = Math.sin((phase / 0.38) * Math.PI) * 8
+          const side = i < 4 ? -1 : 1
+          foot.tx = aim.x
+          foot.ty = aim.y + side * lift
+          foot.hold = null
+        } else if (!foot.hold) {
+          foot.hold = { x: foot.tx, y: foot.ty }
+          foot.tx = foot.hold.x
+          foot.ty = foot.hold.y
+        }
+        const k = lifting ? 14 : 8
+        foot.x += (foot.tx - foot.x) * Math.min(1, dt * k)
+        foot.y += (foot.ty - foot.y) * Math.min(1, dt * k)
+      }
+      seeded = true
+    }
+
+    function drawLeg(hip: Pt, foot: Pt, sideSign: number, color: string) {
+      if (!ctx) {
+        return
+      }
+      const dx = foot.x - hip.x
+      const dy = foot.y - hip.y
+      const dist = Math.max(1, Math.hypot(dx, dy))
+      const d = Math.min(dist, L1 + L2 - 0.2)
+      const ang = Math.atan2(dy, dx)
+      const cosA = clamp((L1 * L1 + d * d - L2 * L2) / (2 * L1 * d), -1, 1)
+      const bend = Math.acos(cosA) * sideSign
+      const kneeX = hip.x + Math.cos(ang + bend) * L1
+      const kneeY = hip.y + Math.sin(ang + bend) * L1
+      ctx.strokeStyle = ink
+      ctx.fillStyle = ink
+      ctx.shadowColor = 'rgba(255, 90, 20, 0.85)'
+      ctx.shadowBlur = 6
+      ctx.lineWidth = 1.7
+      ctx.beginPath()
+      ctx.moveTo(hip.x, hip.y)
+      ctx.lineTo(kneeX, kneeY)
+      ctx.lineTo(foot.x, foot.y)
+      ctx.stroke()
+      ctx.beginPath()
+      ctx.arc(foot.x, foot.y, 2.4, 0, Math.PI * 2)
+      ctx.fill()
+    }
+
+    function drawBody(hip: Pt, heading: number, color: string) {
+      if (!ctx) {
+        return
+      }
+      ctx.save()
+      ctx.translate(hip.x, hip.y)
+      ctx.rotate(heading)
+      ctx.fillStyle = ink
+      ctx.shadowColor = 'rgba(255, 90, 20, 0.9)'
+      ctx.shadowBlur = 10
+      ctx.beginPath()
+      ctx.ellipse(-7, 0, 9, 6, 0, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.beginPath()
+      ctx.ellipse(7, 0, 5.5, 4.2, 0, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.restore()
+    }
+
+    function drawHud(x: number, y: number, now: number) {
+      if (!ctx) {
+        return
+      }
+      const w = 132
+      const h = 78
+      const left = x - w / 2
+      const top = y - h / 2
+      const arm = 14
+      ctx.save()
+      ctx.shadowColor = 'rgba(255, 90, 20, 0.55)'
+      ctx.shadowBlur = 8
+      ctx.strokeStyle = 'rgba(255, 106, 31, 0.9)'
+      ctx.lineWidth = 1.25
+      const corners: [number, number, number, number][] = [
+        [left, top, 1, 1],
+        [left + w, top, -1, 1],
+        [left, top + h, 1, -1],
+        [left + w, top + h, -1, -1]
+      ]
+      for (const [cx, cy, sx, sy] of corners) {
+        ctx.beginPath()
+        ctx.moveTo(cx, cy + sy * arm)
+        ctx.lineTo(cx, cy)
+        ctx.lineTo(cx + sx * arm, cy)
+        ctx.stroke()
+      }
+      ctx.shadowBlur = 0
+      ctx.strokeStyle = 'rgba(255, 106, 31, 0.16)'
+      ctx.lineWidth = 1
+      for (let i = 1; i < 4; i++) {
+        const gy = top + (h * i) / 4
+        ctx.beginPath()
+        ctx.moveTo(left, gy)
+        ctx.lineTo(left + w, gy)
+        ctx.stroke()
+      }
+      for (let i = 1; i < 6; i++) {
+        const gx = left + (w * i) / 6
+        ctx.beginPath()
+        ctx.moveTo(gx, top)
+        ctx.lineTo(gx, top + h)
+        ctx.stroke()
+      }
+      const scan = top + ((now / 16) % h)
+      ctx.strokeStyle = 'rgba(255, 160, 70, 0.55)'
+      ctx.beginPath()
+      ctx.moveTo(left, scan)
+      ctx.lineTo(left + w, scan)
+      ctx.stroke()
+      ctx.font = '10px ui-monospace, SFMono-Regular, Menlo, monospace'
+      ctx.fillStyle = 'rgba(255, 150, 70, 0.92)'
+      ctx.textAlign = 'left'
+      ctx.fillText('GAIT  STAGGERED 8-LEG', left, top - 8)
+      ctx.fillText(
+        `ATTRACTOR  (${Math.round(x)}, ${Math.round(y)})`,
+        left,
+        top + h + 14
+      )
+      ctx.restore()
+    }
+
+    function beginMove(lines: Line[]) {
+      if (!spider.seeded) {
+        const line = lines[Math.floor(Math.random() * lines.length)]
+        spider.pos = {
+          x: line.x + line.w * (0.25 + Math.random() * 0.5),
+          y: line.y
+        }
+        spider.seeded = true
+      }
+      const vertical = lines.filter((l) => Math.abs(l.y - spider.pos.y) > 22)
+      const climb = Math.random() < 0.84 && vertical.length > 0
+      let tx = spider.pos.x
+      let ty = spider.pos.y
+      if (climb) {
+        const dir = Math.random() < 0.5 ? 1 : -1
+        let pool = vertical.filter((l) => Math.sign(l.y - spider.pos.y) === dir || l.y === spider.pos.y)
+        if (!pool.length) {
+          pool = vertical
+        }
+        pool = [...pool].sort(
+          (a, b) => Math.abs(a.y - spider.pos.y) - Math.abs(b.y - spider.pos.y)
+        )
+        const near = pool.slice(0, Math.min(4, pool.length))
+        const pickFrom = Math.random() < 0.22 ? pool : near
+        const line = pickFrom[Math.floor(Math.random() * pickFrom.length)]
+        const drift = (Math.random() - 0.5) * (10 + Math.random() * 28)
+        tx = clamp(spider.pos.x + drift, line.x + 10, line.x + line.w - 10)
+        ty = line.y
+      } else {
+        const line = lines[Math.floor(Math.random() * lines.length)]
+        tx = line.x + 10 + Math.random() * Math.max(8, line.w - 20)
+        ty = line.y
+      }
+      spider.from = { x: spider.pos.x, y: spider.pos.y }
+      spider.to = { x: tx, y: ty }
+      spider.t = 0
+      const dist = Math.max(12, Math.hypot(tx - spider.pos.x, ty - spider.pos.y))
+      const speed = 64 + Math.random() * 90
+      spider.dur = clamp(dist / speed, 0.2, 1.4)
+      spider.wobble = (Math.random() < 0.5 ? -1 : 1) * (8 + Math.random() * 18)
+      spider.phase = 'move'
+      spider.heading = Math.atan2(ty - spider.pos.y, tx - spider.pos.x)
+    }
+
+    resizeSilk()
+    let lines = linesInView()
+    let last = performance.now()
+
+    const tick = (now: number) => {
+      const dt = Math.min(0.05, (now - last) / 1000)
+      last = now
+      lines = linesInView()
+      if (!lines.length) {
+        mark.style.opacity = '0'
+      } else {
+        if (spider.phase === 'hold') {
+          spider.holdLeft -= dt
+          if (spider.holdLeft <= 0) {
+            beginMove(lines)
+          }
+        } else {
+          spider.t += dt / spider.dur
+          const u = clamp(spider.t, 0, 1)
+          const e = u * u * (3 - 2 * u)
+          const dx = spider.to.x - spider.from.x
+          const dy = spider.to.y - spider.from.y
+          const dist = Math.hypot(dx, dy) || 1
+          const bow = Math.sin(u * Math.PI) * spider.wobble
+          const prev = { x: spider.pos.x, y: spider.pos.y }
+          spider.pos = {
+            x: spider.from.x + dx * e + (-dy / dist) * bow,
+            y: spider.from.y + dy * e + (dx / dist) * bow
+          }
+          const vx = spider.pos.x - prev.x
+          const vy = spider.pos.y - prev.y
+          if (Math.hypot(vx, vy) > 0.35) {
+            spider.heading = Math.atan2(vy, vx)
+          }
+          if (u >= 1) {
+            spider.pos = { x: spider.to.x, y: spider.to.y }
+            spider.phase = 'hold'
+            spider.holdLeft = 0.04 + Math.random() * 0.22
+          }
+        }
+
+        const reach = spider.phase === 'move' ? spider.to : null
+        stepFeet(now, dt, spider.pos, spider.heading, reach)
+        spider.trail.push({ x: spider.pos.x, y: spider.pos.y, at: now })
+        spider.trail = spider.trail.filter((p) => now - p.at < 1600)
+
+        const word = wordAt(spider.pos.x, spider.pos.y)
+        if (word) {
+          mark.style.opacity = '1'
+          mark.style.transform = `translate(${word.rect.left}px, ${word.rect.top}px)`
+          mark.style.width = `${word.rect.width}px`
+          mark.style.height = `${word.rect.height}px`
+          if (cyberOn()) {
+            floatWord(word.rect, word.text, now)
+          }
+        } else {
+          mark.style.opacity = '0'
+        }
+      }
+
+      if (ctx) {
+        ctx.clearRect(0, 0, window.innerWidth, window.innerHeight)
+        ctx.shadowBlur = 0
+        ctx.lineCap = 'round'
+        ctx.lineJoin = 'round'
+        ctx.lineWidth = 1
+        for (let i = 1; i < spider.trail.length; i++) {
+          const a = spider.trail[i - 1]
+          const b = spider.trail[i]
+          const age = 1 - (now - b.at) / 1600
+          ctx.strokeStyle = `rgba(255, 106, 31, ${Math.max(0, age) * 0.55})`
+          ctx.beginPath()
+          ctx.moveTo(a.x, a.y)
+          ctx.lineTo(b.x, b.y)
+          ctx.stroke()
+        }
+        if (lines.length) {
+          for (let i = 0; i < feet.length; i++) {
+            const along = slots[i % 4]
+            const side = i < 4 ? -1 : 1
+            const perp = spider.heading + Math.PI / 2
+            const hip = {
+              x: spider.pos.x + Math.cos(spider.heading) * along * 0.35 + Math.cos(perp) * side * 3,
+              y: spider.pos.y + Math.sin(spider.heading) * along * 0.35 + Math.sin(perp) * side * 2.2
+            }
+            drawLeg(hip, feet[i], side, ink)
+          }
+          drawHud(spider.pos.x, spider.pos.y, now)
+          drawBody(spider.pos, spider.heading, ink)
+        }
+      }
+      requestAnimationFrame(tick)
+    }
+
+    window.addEventListener('resize', () => {
+      resizeSilk()
+    })
+    requestAnimationFrame(tick)
+  }
+</script>
+
+<style is:global>
+  #web-crawler-silk,
+  #web-crawler-mark {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 25;
+  }
+
+  #web-crawler-mark {
+    inset: auto;
+    left: 0;
+    top: 0;
+    background: rgba(255, 106, 31, 0.28);
+    border-radius: 2px;
+    opacity: 0;
+  }
+
+  @media (prefers-reduced-motion: reduce), print {
+    #web-crawler-silk,
+    #web-crawler-mark {
+      display: none;
+    }
+  }
+</style>

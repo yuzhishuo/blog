@@ -64,62 +64,6 @@ const heroFrontmatter = {
 }
 ---
 
-<ReadingProgress />
-<script is:inline>
-  // Recalc from rendered #content (Notion body may be empty at remark time)
-  ;(function () {
-    function isCJK(ch) {
-      const c = ch.charCodeAt(0)
-      return (c >= 0x4e00 && c <= 0x9fff) || (c >= 0x3400 && c <= 0x4dbf)
-    }
-    function wordsOf(text) {
-      let words = 0
-      let inWord = false
-      for (let i = 0; i < text.length; i++) {
-        const ch = text[i]
-        if (isCJK(ch)) {
-          words++
-          inWord = false
-        } else if (/\S/.test(ch)) {
-          if (!inWord) {
-            words++
-            inWord = true
-          }
-        } else inWord = false
-      }
-      return words
-    }
-    function sync() {
-      const article = document.getElementById('content')
-      if (!article) return
-      const n = Math.max(1, Math.ceil(wordsOf(article.innerText || '') / 200))
-      const label = '约 ' + n + ' 分钟阅读'
-      const info = document.querySelector('.article-info')
-      if (!info) return
-      const wrap = info.querySelector('.flex.flex-wrap')
-      const rows = info.querySelectorAll('.flex.items-center.gap-1')
-      rows.forEach((row) => {
-        const t = (row.textContent || '').trim()
-        if (/分钟阅读|\d+\s*min/i.test(t)) {
-          const svg = row.querySelector('svg')
-          row.textContent = ''
-          if (svg) row.appendChild(svg)
-          row.appendChild(document.createTextNode(' ' + label))
-        }
-      })
-      // Merge page PV into the same meta row (avoid a stray line under the quote)
-      if (wrap && !wrap.querySelector('#busuanzi_value_page_pv')) {
-        const pv = document.createElement('div')
-        pv.className = 'flex items-center gap-1'
-        pv.innerHTML = '阅读 <span id="busuanzi_value_page_pv">-</span> 次'
-        wrap.appendChild(pv)
-      }
-    }
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', sync)
-    else sync()
-  })()
-</script>
-
 <PageLayout
   meta={{ articleDate, description, ogImage: socialImage, title }}
   highlightColor={primaryColor}
@@ -129,6 +73,73 @@ const heroFrontmatter = {
   {!!headings.length && <TOC {headings} slot='sidebar' />}
 
   <Hero data={data as any} remarkPluginFrontmatter={heroFrontmatter} slot='header' />
+
+  <ReadingProgress />
+  <script is:inline>
+    // Recalc from rendered #content (Notion body may be empty at remark time)
+    ;(function () {
+      function isCJK(ch) {
+        const c = ch.charCodeAt(0)
+        return (c >= 0x4e00 && c <= 0x9fff) || (c >= 0x3400 && c <= 0x4dbf)
+      }
+      function wordsOf(text) {
+        let words = 0
+        let inWord = false
+        for (let i = 0; i < text.length; i++) {
+          const ch = text[i]
+          if (isCJK(ch)) {
+            words++
+            inWord = false
+          } else if (/\S/.test(ch)) {
+            if (!inWord) {
+              words++
+              inWord = true
+            }
+          } else {
+            inWord = false
+          }
+        }
+        return words
+      }
+      function sync() {
+        const article = document.getElementById('content')
+        if (!article) {
+          return
+        }
+        const n = Math.max(1, Math.ceil(wordsOf(article.innerText || '') / 200))
+        const label = '约 ' + n + ' 分钟阅读'
+        const info = document.querySelector('.article-info')
+        if (!info) {
+          return
+        }
+        const wrap = info.querySelector('.flex.flex-wrap')
+        const rows = info.querySelectorAll('.flex.items-center.gap-1')
+        rows.forEach((row) => {
+          const t = (row.textContent || '').trim()
+          if (/分钟阅读|\d+\s*min/i.test(t)) {
+            const svg = row.querySelector('svg')
+            row.textContent = ''
+            if (svg) {
+              row.appendChild(svg)
+            }
+            row.appendChild(document.createTextNode(' ' + label))
+          }
+        })
+        // Merge page PV into the same meta row (avoid a stray line under the quote)
+        if (wrap && !wrap.querySelector('#busuanzi_value_page_pv')) {
+          const pv = document.createElement('div')
+          pv.className = 'flex items-center gap-1'
+          pv.innerHTML = '阅读 <span id="busuanzi_value_page_pv">-</span> 次'
+          wrap.appendChild(pv)
+        }
+      }
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', sync)
+      } else {
+        sync()
+      }
+    })()
+  </script>
 
   <slot />
 

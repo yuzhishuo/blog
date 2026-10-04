@@ -39,6 +39,73 @@ html.dark {
   color-scheme: dark;
 }
 
+/* Cyber: black field, white text, orange signal. Wins over light and dark. */
+html.cyber {
+  color-scheme: dark;
+  --primary: 22 100% 56%;
+  --foreground: 0 0% 96%;
+  --muted-foreground: 24 8% 74%;
+  --background: 0 0% 4%;
+  --muted: 0 0% 8%;
+  --card: 0 0% 7%;
+  --border: 22 35% 24%;
+  --input: 0 0% 10%;
+  --ring: 22 100% 56%;
+}
+html.cyber ::selection {
+  background: #ff6a1f;
+  color: #0a0a0a;
+}
+#toggleCyberMode[aria-pressed='true'] {
+  color: #ff6a1f;
+  border-color: #ff6a1f;
+  background: rgba(255, 106, 31, 0.14);
+}
+.cyber-float {
+  position: fixed;
+  z-index: 26;
+  pointer-events: none;
+  color: #ff6a1f;
+  font-weight: 700;
+  white-space: nowrap;
+  text-shadow:
+    0 0 10px rgba(255, 106, 31, 0.95),
+    2px 0 #67e8ff,
+    -2px 0 #ff4d6d;
+  animation: cyber-float-up 780ms ease-out forwards;
+}
+@keyframes cyber-float-up {
+  0% {
+    transform: translateY(0) skewX(0deg);
+    opacity: 1;
+  }
+  35% {
+    transform: translateY(-10px) skewX(-10deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-42px) skewX(8deg);
+    opacity: 0;
+  }
+}
+@media print {
+  html.cyber {
+    color-scheme: light;
+    --primary: 200 29% 45%;
+    --foreground: 240 10% 3.9%;
+    --muted-foreground: 240 3.8% 28.1%;
+    --background: 0 0% 100%;
+    --muted: 240 4.8% 96%;
+    --card: 0 0% 90%;
+    --border: 240 5.9% 88%;
+    --input: 240 5.9% 90%;
+    --ring: 240 5.9% 10%;
+  }
+  .cyber-float {
+    display: none;
+  }
+}
+
 /* Global */
 a {
   transition: color 0.2s ease;

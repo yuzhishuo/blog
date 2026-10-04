@@ -15,7 +15,7 @@
       "语言与系统：熟练使用 C，熟悉 C++14/17 与常见设计模式；Linux、ThreadX、FreeRTOS；平台 Orin、8195、8295、TC4D。",
       "通信中间件与协议：DoIP、SOME/IP、DDS（Fast DDS）、SPI、CAN、CAN FD、TCP/IP（NetX Duo）；",
       "调试与测试：熟练使用 Lauterbach TRACE32 进行 Monitor、Snooper Trace、Cache Analyzer 调试；使用 CANoe、TSMaster 编写 CAPL 与专用脚本，建立测试集。",
-      "稳定性与性能分析：绑核，分析调度时序与热点（ftrace、perf、Perfetto、Tracy、bpftrace、trace-cmd）；用 eBPF 追踪网络丢包；用 ASan、LSan 查越界和泄漏。"
+      "稳定性与性能分析：绑核，分析调度时序与热点（ftrace、perf、Perfetto、Tracy、bpftrace、trace-cmd（KernelShark））；用 eBPF 追踪网络丢包；用 ASan、LSan 查越界和泄漏。"
     ],
     "education": [
       {
