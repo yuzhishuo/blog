@@ -31,6 +31,7 @@ cv:
         location: 上海
         highlights:
           - 负责 DoIP（A 核/M 核）/ UDS（Dcm）/ DoCan 协议栈开发（两次量产），维护 SD / SecOC。
+          - 完成 MCU 侧 AUTOSAR MCAL 外设驱动适配与开发，支撑诊断、刷写与台架联调。
           - 主导自研 AUTOSAR CP 平台中基于 CAN / 以太总线的诊断功能开发与维护；熟悉极氪 / 吉利诊断需求，推动非标准能力纳入上下游模块。
           - 了解中央网关、相关域控、座椅、油泵等控制器底软与子系统诊断需求。
       - company: 上海商泰汽车信息系统有限公司
