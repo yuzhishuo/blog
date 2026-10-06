@@ -22,7 +22,7 @@
 
     type Line = { x: number; y: number; w: number }
     type Pt = { x: number; y: number }
-    type Foot = { x: number; y: number; tx: number; ty: number; hold: Pt | null }
+    type Foot = { x: number; y: number; tx: number; ty: number; hold: Pt | null; swingFrom: Pt | null }
     type Spider = {
       id: number
       feet: Foot[]
@@ -46,6 +46,8 @@
       lane: number
       haul: boolean
       haulK: number
+      gaitT: number
+      bob: number
     }
     type Petal = {
       x: number
@@ -70,8 +72,8 @@
       stuck: boolean
     }
 
-    const L1 = 28
-    const L2 = 26
+    const L1 = 30
+    const L2 = 28
     const slots = [26, 10, -10, -26]
     const ink = '#ff6a1f'
     const PETAL_CAP = 420
@@ -88,7 +90,6 @@
     let nextId = 1
     let silkDpr = 1
     let bloomDpr = 1
-
     function cyberOn(): boolean {
       return document.documentElement.classList.contains('cyber')
     }
@@ -113,7 +114,8 @@
           y: 0,
           tx: 0,
           ty: 0,
-          hold: null
+          hold: null,
+          swingFrom: null
         })),
         seeded: false,
         phase: 'wait',
@@ -134,7 +136,9 @@
         tempo: [1.28, 0.74, 1.02][style],
         lane: [0.2, 0.5, 0.8][style],
         haul: false,
-        haulK: 1
+        haulK: 1,
+        gaitT: 0,
+        bob: 0
       }
     }
 
@@ -553,6 +557,7 @@
       s.dur = [0.9, 1.4, 1.1][s.style]
       s.phase = 'gather'
       s.heading = -Math.PI / 2
+      s.bob = 0
       for (let i = 0; i < petals.length; i++) {
         const p = petals[i]
         if (p.owner !== s.id) {
@@ -768,92 +773,189 @@
       btx.globalAlpha = 1
     }
 
+    // Alternating tetrapod: L1/L3/R2/R4 vs R1/L2/R3/L4.
+    function tetrapodGroup(i: number): number {
+      return (i % 4 + Math.floor(i / 4)) % 2
+    }
+
+    // +1 = toward screen bottom (nearer to camera in top-front view).
+    function sideNear(heading: number, side: number): number {
+      return Math.sin(heading + Math.PI / 2) * side
+    }
+
+    // Blend lateral + fore/aft so depth still reads when facing straight down/up.
+    function legNear(i: number, heading: number): number {
+      const along = slots[i % 4]
+      const side = i < 4 ? -1 : 1
+      const lat = sideNear(heading, side)
+      const fwd = Math.sin(heading) * (along / 26)
+      return clamp(lat * 0.72 + fwd * 0.48, -1, 1)
+    }
+
     function aimFor(i: number, hip: Pt, heading: number, reach: Pt | null): Pt {
       const along = slots[i % 4]
       const side = i < 4 ? -1 : 1
       const perp = heading + Math.PI / 2
+      const near = legNear(i, heading)
+      // Far legs foreshorten inward; near legs plant wider and a bit lower.
+      const lat = 34 * (0.78 + near * 0.22)
+      const drop = near * 5.2
       if (reach && along > 0) {
         return {
-          x: reach.x + Math.cos(perp) * side * 9,
-          y: reach.y + Math.sin(perp) * side * 9
+          x: reach.x + Math.cos(perp) * side * (9 + near * 2),
+          y: reach.y + Math.sin(perp) * side * (9 + near * 2) + drop * 0.35
         }
       }
       return {
-        x: hip.x + Math.cos(heading) * along + Math.cos(perp) * side * 32,
-        y: hip.y + Math.sin(heading) * along + Math.sin(perp) * side * 32
+        x: hip.x + Math.cos(heading) * along + Math.cos(perp) * side * lat,
+        y: hip.y + Math.sin(heading) * along + Math.sin(perp) * side * lat + drop
       }
     }
 
-    function stepFeet(s: Spider, now: number, dt: number, reach: Pt | null) {
+    function stepFeet(s: Spider, now: number, dt: number, reach: Pt | null, moving: boolean) {
+      // ~2.2 tetrapod cycles/sec at tempo 1; swing short, stance long.
+      const rate = 2.15 * s.tempo
+      if (moving) {
+        s.gaitT += dt * rate
+      }
+      const swingFrac = 0.3
       for (let i = 0; i < s.feet.length; i++) {
         const foot = s.feet[i]
-        const phase = (now / 460 + (i % 2) * 0.5 + (i % 4) * 0.05) % 1
-        const lifting = phase < 0.38
+        const near = legNear(i, s.heading)
+        const group = tetrapodGroup(i)
+        const phase = (s.gaitT + group * 0.5) % 1
+        const aim = aimFor(i, s.pos, s.heading, reach)
         if (!s.seeded) {
-          const aim = aimFor(i, s.pos, s.heading, reach)
           foot.x = aim.x
           foot.y = aim.y
           foot.tx = aim.x
           foot.ty = aim.y
           foot.hold = { x: aim.x, y: aim.y }
-        } else if (lifting) {
-          const aim = aimFor(i, s.pos, s.heading, reach)
-          const lift = Math.sin((phase / 0.38) * Math.PI) * 8
-          const side = i < 4 ? -1 : 1
-          foot.tx = aim.x
-          foot.ty = aim.y + side * lift
+          foot.swingFrom = null
+          continue
+        }
+        const swinging = moving && phase < swingFrac
+        if (swinging) {
+          const u = phase / swingFrac
+          if (!foot.swingFrom) {
+            foot.swingFrom = foot.hold
+              ? { x: foot.hold.x, y: foot.hold.y }
+              : { x: foot.x, y: foot.y }
+          }
           foot.hold = null
-        } else if (!foot.hold) {
-          foot.hold = { x: foot.tx, y: foot.ty }
+          const sm = u * u * (3 - 2 * u)
+          const lift = Math.sin(u * Math.PI)
+          // Arc toward new plant; lift toward screen-up; mid-swing tuck slightly in.
+          const hx = s.pos.x
+          const hy = s.pos.y
+          const midX = foot.swingFrom.x + (aim.x - foot.swingFrom.x) * sm
+          const midY = foot.swingFrom.y + (aim.y - foot.swingFrom.y) * sm
+          const tuck = lift * 0.18
+          foot.tx = midX + (hx - midX) * tuck
+          foot.ty = midY + (hy - midY) * tuck - lift * (8.5 + near * 2.2)
+          const k = 20
+          foot.x += (foot.tx - foot.x) * Math.min(1, dt * k)
+          foot.y += (foot.ty - foot.y) * Math.min(1, dt * k)
+        } else if (moving) {
+          // Stance: plant firmly in world space — do not skate with the body.
+          foot.swingFrom = null
+          if (!foot.hold) {
+            foot.hold = { x: foot.x, y: foot.y }
+          }
           foot.tx = foot.hold.x
           foot.ty = foot.hold.y
+          foot.x = foot.hold.x
+          foot.y = foot.hold.y
+        } else {
+          // Idle / hold / rope: settle all feet onto stance aims.
+          foot.swingFrom = null
+          foot.hold = { x: aim.x, y: aim.y }
+          foot.tx = aim.x
+          foot.ty = aim.y
+          const k = 10
+          foot.x += (foot.tx - foot.x) * Math.min(1, dt * k)
+          foot.y += (foot.ty - foot.y) * Math.min(1, dt * k)
         }
-        const k = lifting ? 14 : 8
-        foot.x += (foot.tx - foot.x) * Math.min(1, dt * k)
-        foot.y += (foot.ty - foot.y) * Math.min(1, dt * k)
       }
       s.seeded = true
+      if (moving) {
+        // Body bob peaks as each tetrapod plants (twice per gait cycle).
+        s.bob = Math.sin(s.gaitT * Math.PI * 2) * 2.35
+      } else {
+        s.bob *= Math.max(0, 1 - dt * 6)
+      }
     }
 
-    function drawLeg(hip: Pt, foot: Pt, sideSign: number) {
+    function drawLeg(hip: Pt, foot: Foot, sideSign: number, near: number) {
       if (!ctx) {
         return
       }
       const dx = foot.x - hip.x
       const dy = foot.y - hip.y
       const dist = Math.max(1, Math.hypot(dx, dy))
-      const d = Math.min(dist, L1 + L2 - 0.2)
+      // Far legs foreshorten; near legs read longer/thicker.
+      const depth = 0.8 + near * 0.2
+      const d = Math.min(dist, L1 + L2 - 0.2) * (0.9 + near * 0.06)
       const ang = Math.atan2(dy, dx)
       const cosA = clamp((L1 * L1 + d * d - L2 * L2) / (2 * L1 * d), -1, 1)
       const bend = Math.acos(cosA) * sideSign
-      const kneeX = hip.x + Math.cos(ang + bend) * L1
-      const kneeY = hip.y + Math.sin(ang + bend) * L1
+      const kneeX = hip.x + Math.cos(ang + bend) * L1 * depth
+      const kneeY = hip.y + Math.sin(ang + bend) * L1 * depth
+      const planted = !!foot.hold
       ctx.strokeStyle = ink
       ctx.fillStyle = ink
-      ctx.lineWidth = 1.7
+      ctx.globalAlpha = 0.72 + near * 0.22
+      ctx.lineWidth = 1.35 + near * 0.75
       ctx.beginPath()
       ctx.moveTo(hip.x, hip.y)
       ctx.lineTo(kneeX, kneeY)
       ctx.lineTo(foot.x, foot.y)
       ctx.stroke()
+      // Planted pad flat; airborne tip round. Near feet draw larger.
+      const pad = 2.0 + near * 0.7
       ctx.beginPath()
-      ctx.arc(foot.x, foot.y, 2.4, 0, Math.PI * 2)
+      if (planted) {
+        ctx.ellipse(foot.x, foot.y, pad * 1.55, pad * 0.72, ang, 0, Math.PI * 2)
+      } else {
+        ctx.arc(foot.x, foot.y, pad * 0.95, 0, Math.PI * 2)
+      }
       ctx.fill()
+      ctx.globalAlpha = 1
     }
 
-    function drawBody(hip: Pt, heading: number) {
+    function drawBody(hip: Pt, heading: number, bob: number) {
       if (!ctx) {
         return
       }
+      const x = hip.x
+      const y = hip.y + bob
+      // Soft ground shadow — reads as height above the page.
       ctx.save()
-      ctx.translate(hip.x, hip.y)
+      ctx.globalAlpha = 0.2
+      ctx.translate(x + Math.cos(heading + Math.PI / 2) * 1.2, y + 6.5)
       ctx.rotate(heading)
-      ctx.fillStyle = ink
+      ctx.fillStyle = '#000'
       ctx.beginPath()
-      ctx.ellipse(-7, 0, 9, 6, 0, 0, Math.PI * 2)
+      ctx.ellipse(0, 0, 15.5, 5.8, 0, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.restore()
+
+      ctx.save()
+      ctx.translate(x, y)
+      ctx.rotate(heading)
+      // Mild top-down squash so the oval isn't a flat sticker.
+      ctx.scale(1, 0.86)
+      ctx.fillStyle = ink
+      // Abdomen: rounder / bulkier, sits rear of heading.
+      ctx.beginPath()
+      ctx.ellipse(-9.2, 0, 11.5, 7.8, 0, 0, Math.PI * 2)
+      ctx.fill()
+      // Cephalothorax: smaller, then a tiny tip so it reads pointier forward.
+      ctx.beginPath()
+      ctx.ellipse(6.4, 0, 4.9, 3.55, 0, 0, Math.PI * 2)
       ctx.fill()
       ctx.beginPath()
-      ctx.ellipse(7, 0, 5.5, 4.2, 0, 0, Math.PI * 2)
+      ctx.ellipse(10.4, 0, 2.35, 1.65, 0, 0, Math.PI * 2)
       ctx.fill()
       ctx.restore()
     }
@@ -1005,6 +1107,13 @@
         (Math.random() < 0.5 ? -1 : 1) * ([6, 22, 12][s.style] + Math.random() * 10)
       s.phase = 'move'
       s.heading = Math.atan2(ty - s.pos.y, tx - s.pos.x)
+      s.gaitT = Math.random() * 0.08
+      s.bob = 0
+      // Release plants so the first swing can re-anchor cleanly.
+      for (let i = 0; i < s.feet.length; i++) {
+        s.feet[i].hold = null
+        s.feet[i].swingFrom = null
+      }
     }
 
     resizeSilk()
@@ -1097,14 +1206,17 @@
               }
             }
           } else {
-            s.t += dt / s.dur
+            // Surge forward as each tetrapod plants; ease between pushes so it
+            // pauses/bobs instead of skating in one continuous ease.
+            const pulse = Math.pow(Math.sin(s.gaitT * Math.PI * 2), 2)
+            s.t += (dt / s.dur) * (0.38 + 0.95 * pulse)
             s.crawlLeft -= dt
             const u = clamp(s.t, 0, 1)
             const e = ease(u)
             const dx = s.to.x - s.from.x
             const dy = s.to.y - s.from.y
             const dist = Math.hypot(dx, dy) || 1
-            const bow = Math.sin(u * Math.PI) * s.wobble
+            const bow = Math.sin(u * Math.PI) * s.wobble * 0.65
             const prev = { x: s.pos.x, y: s.pos.y }
             s.pos = {
               x: s.from.x + dx * e + (-dy / dist) * bow,
@@ -1112,11 +1224,12 @@
             }
             const vx = s.pos.x - prev.x
             const vy = s.pos.y - prev.y
-            if (Math.hypot(vx, vy) > 0.35) {
+            if (Math.hypot(vx, vy) > 0.2) {
               s.heading = Math.atan2(vy, vx)
             }
             if (u >= 1) {
               s.pos = { x: s.to.x, y: s.to.y }
+              s.bob = 0
               if (cyber && s.crawlLeft <= 0) {
                 if (ropeBusy(s)) {
                   s.phase = 'hold'
@@ -1134,7 +1247,7 @@
 
           const reach =
             s.phase === 'move' ? s.to : s.phase === 'drop' || s.phase === 'lift' ? s.to : null
-          stepFeet(s, now, dt, reach)
+          stepFeet(s, now, dt, reach, s.phase === 'move')
           s.trail.push({ x: s.pos.x, y: s.pos.y, at: now })
           if (s.trail.length > 18 || (s.trail[0] && now - s.trail[0].at > 900)) {
             s.trail.shift()
@@ -1196,26 +1309,39 @@
           if (s.phase === 'wait') {
             return
           }
-          for (let i = 0; i < s.feet.length; i++) {
+          // Far legs under body, near legs on top — cheap depth layering.
+          const legOrder = [0, 1, 2, 3, 4, 5, 6, 7].sort(
+            (a, b) => legNear(a, s.heading) - legNear(b, s.heading)
+          )
+          const drawOneLeg = (i: number) => {
             const along = slots[i % 4]
             const side = i < 4 ? -1 : 1
             const perp = s.heading + Math.PI / 2
+            const near = legNear(i, s.heading)
             const hip = {
               x:
                 s.pos.x +
                 Math.cos(s.heading) * along * 0.35 +
-                Math.cos(perp) * side * 3,
+                Math.cos(perp) * side * (2.6 + near * 1.1),
               y:
                 s.pos.y +
+                s.bob +
                 Math.sin(s.heading) * along * 0.35 +
-                Math.sin(perp) * side * 2.2
+                Math.sin(perp) * side * (2.0 + near * 0.9) +
+                near * 1.4
             }
-            drawLeg(hip, s.feet[i], side)
+            drawLeg(hip, s.feet[i], side, near)
+          }
+          for (let n = 0; n < 4; n++) {
+            drawOneLeg(legOrder[n])
           }
           if (cyber) {
-            drawHud(s.pos.x, s.pos.y, now)
+            drawHud(s.pos.x, s.pos.y + s.bob, now)
           }
-          drawBody(s.pos, s.heading)
+          drawBody(s.pos, s.heading, s.bob)
+          for (let n = 4; n < 8; n++) {
+            drawOneLeg(legOrder[n])
+          }
         })
       }
       requestAnimationFrame(tick)
