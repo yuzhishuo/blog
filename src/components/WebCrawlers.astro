@@ -27,7 +27,7 @@
       id: number
       feet: Foot[]
       seeded: boolean
-      phase: 'wait' | 'drop' | 'move' | 'hold' | 'lift'
+      phase: 'wait' | 'drop' | 'move' | 'hold' | 'gather' | 'lift'
       from: Pt
       to: Pt
       t: number
@@ -366,6 +366,41 @@
       trimPetals()
     }
 
+    function blankPad(): { left: number; right: number; top: number; bottom: number } {
+      return {
+        left: 28,
+        right: window.innerWidth - 28,
+        top: 72,
+        bottom: window.innerHeight - 36
+      }
+    }
+
+    // Crawl open canvas (margins / gaps), not only text lines.
+    function pickBlank(self: Spider, preferLower = Math.random() < 0.67): Pt {
+      const pad = blankPad()
+      const cut = window.innerHeight * (2 / 3)
+      let best = {
+        x: window.innerWidth * self.lane,
+        y: preferLower ? cut + 40 : cut - 40
+      }
+      for (let n = 0; n < 10; n++) {
+        const x = clamp(
+          window.innerWidth * self.lane + (Math.random() - 0.5) * window.innerWidth * 0.55,
+          pad.left,
+          pad.right
+        )
+        const yLo = preferLower ? Math.max(pad.top, cut) : pad.top
+        const yHi = preferLower ? pad.bottom : Math.min(pad.bottom, cut)
+        const y = yLo + Math.random() * Math.max(8, yHi - yLo)
+        const pt = { x, y }
+        if (!tooClose(pt.x, pt.y, self)) {
+          return pt
+        }
+        best = pt
+      }
+      return best
+    }
+
     function pickLine(view: Line[], preferLower = Math.random() < 0.67, lane = 0.5): Line {
       const cut = window.innerHeight * (2 / 3)
       const pool = view.filter((l) => (preferLower ? l.y >= cut : l.y < cut))
@@ -405,9 +440,13 @@
     }
 
     function pickLand(view: Line[], self: Spider): Pt {
+      const preferLower = self.style === 2 ? Math.random() < 0.86 : Math.random() < 0.62
+      // Sometimes drop onto open space so ropes aren't always glued to text.
+      if (!view.length || Math.random() < 0.38) {
+        return pickBlank(self, preferLower)
+      }
       let best = { x: self.lane * window.innerWidth, y: window.innerHeight * 0.75 }
       for (let n = 0; n < 8; n++) {
-        const preferLower = self.style === 2 ? Math.random() < 0.86 : Math.random() < 0.62
         const line = pickLine(view, preferLower, self.lane)
         const x = clamp(
           line.x + line.w * (0.15 + Math.random() * 0.7),
@@ -444,6 +483,28 @@
       s.heading = -Math.PI / 2
       s.haul = false
       s.haulK = 1
+      for (let i = 0; i < petals.length; i++) {
+        const p = petals[i]
+        if (p.owner !== s.id) {
+          continue
+        }
+        p.rewind = true
+        p.grounded = false
+        p.stuck = false
+        p.age = 0
+        p.vx *= 0.25
+        p.vy = Math.min(30, p.vy * 0.15)
+      }
+    }
+
+    // Pause under a vertical rope and reel this spider's petals back before lifting.
+    function beginGather(s: Spider) {
+      s.from = { x: s.pos.x, y: s.pos.y }
+      s.to = { x: s.pos.x, y: 4 }
+      s.t = 0
+      s.dur = [0.9, 1.4, 1.1][s.style]
+      s.phase = 'gather'
+      s.heading = -Math.PI / 2
       for (let i = 0; i < petals.length; i++) {
         const p = petals[i]
         if (p.owner !== s.id) {
@@ -541,6 +602,11 @@
           const dx = p.x - home.x
           const dy = p.y - home.y
           if (dx * dx + dy * dy < 380) {
+            p.stuck = true
+            p.x = home.x
+            p.y = home.y
+            p.vx = 0
+            p.vy = 0
             continue
           }
         } else {
@@ -796,61 +862,91 @@
     function beginMove(s: Spider, view: Line[]) {
       const preferLower =
         s.style === 2 ? Math.random() < 0.84 : s.style === 0 ? Math.random() < 0.48 : Math.random() < 0.62
+      const pad = blankPad()
       if (s.pos.x === 0 && s.pos.y === 0) {
-        const line = pickLine(view, preferLower, s.lane)
-        s.pos = {
-          x: clamp(line.x + line.w * s.lane, line.x + 10, line.x + line.w - 10),
-          y: line.y
+        if (view.length && Math.random() < 0.7) {
+          const line = pickLine(view, preferLower, s.lane)
+          s.pos = {
+            x: clamp(line.x + line.w * s.lane, line.x + 10, line.x + line.w - 10),
+            y: line.y
+          }
+        } else {
+          s.pos = pickBlank(s, preferLower)
         }
       }
-      const cut = window.innerHeight * (2 / 3)
-      const band = view.filter((l) => (preferLower ? l.y >= cut : l.y < cut))
-      const pool0 = band.length ? band : view
-      const vertical = pool0.filter((l) => Math.abs(l.y - s.pos.y) > 22)
-      const climbChance = [0.9, 0.42, 0.7][s.style]
-      const climb = Math.random() < climbChance && vertical.length > 0
       let tx = s.pos.x
       let ty = s.pos.y
-      if (climb) {
-        const dir =
-          s.style === 2
-            ? Math.random() < 0.72 ? 1 : -1
-            : s.style === 0
-              ? Math.random() < 0.5
-                ? 1
-                : -1
-              : Math.random() < 0.4
-                ? 1
-                : -1
-        let pool = vertical.filter(
-          (l) => Math.sign(l.y - s.pos.y) === dir || l.y === s.pos.y
-        )
-        if (!pool.length) {
-          pool = vertical
-        }
-        const want = window.innerWidth * s.lane
-        pool = [...pool].sort(
-          (a, b) =>
-            Math.abs(a.y - s.pos.y) * 0.6 +
-            Math.abs(a.x + a.w / 2 - want) * 0.4 -
-            (Math.abs(b.y - s.pos.y) * 0.6 + Math.abs(b.x + b.w / 2 - want) * 0.4)
-        )
-        const near = pool.slice(0, Math.min(s.style === 1 ? 7 : 4, pool.length))
-        const line = near[Math.floor(Math.random() * near.length)]
-        const drift = (Math.random() - 0.5) * ([18, 48, 26][s.style] + Math.random() * 16)
-        tx = clamp(s.pos.x + drift, line.x + 10, line.x + line.w - 10)
-        ty = line.y
+      // Prefer open space sometimes; always use blank when no text lines are in view.
+      const wantBlank = !view.length || Math.random() < 0.42
+      if (wantBlank) {
+        const blank = pickBlank(s, preferLower)
+        tx = blank.x
+        ty = blank.y
       } else {
-        const line = pickLine(pool0, preferLower, s.lane)
-        tx = clamp(
-          line.x + 10 + Math.random() * Math.max(8, line.w - 20),
-          line.x + 10,
-          line.x + line.w - 10
-        )
-        ty = line.y
+        const cut = window.innerHeight * (2 / 3)
+        const band = view.filter((l) => (preferLower ? l.y >= cut : l.y < cut))
+        const pool0 = band.length ? band : view
+        const vertical = pool0.filter((l) => Math.abs(l.y - s.pos.y) > 22)
+        const climbChance = [0.9, 0.42, 0.7][s.style]
+        const climb = Math.random() < climbChance && vertical.length > 0
+        if (climb) {
+          const dir =
+            s.style === 2
+              ? Math.random() < 0.72
+                ? 1
+                : -1
+              : s.style === 0
+                ? Math.random() < 0.5
+                  ? 1
+                  : -1
+                : Math.random() < 0.4
+                  ? 1
+                  : -1
+          let pool = vertical.filter(
+            (l) => Math.sign(l.y - s.pos.y) === dir || l.y === s.pos.y
+          )
+          if (!pool.length) {
+            pool = vertical
+          }
+          const want = window.innerWidth * s.lane
+          pool = [...pool].sort(
+            (a, b) =>
+              Math.abs(a.y - s.pos.y) * 0.6 +
+              Math.abs(a.x + a.w / 2 - want) * 0.4 -
+              (Math.abs(b.y - s.pos.y) * 0.6 + Math.abs(b.x + b.w / 2 - want) * 0.4)
+          )
+          const near = pool.slice(0, Math.min(s.style === 1 ? 7 : 4, pool.length))
+          const line = near[Math.floor(Math.random() * near.length)]
+          const drift = (Math.random() - 0.5) * ([18, 48, 26][s.style] + Math.random() * 16)
+          tx = clamp(s.pos.x + drift, line.x + 10, line.x + line.w - 10)
+          ty = line.y
+        } else {
+          const line = pickLine(pool0, preferLower, s.lane)
+          tx = clamp(
+            line.x + 10 + Math.random() * Math.max(8, line.w - 20),
+            line.x + 10,
+            line.x + line.w - 10
+          )
+          ty = line.y
+        }
       }
+      tx = clamp(tx, pad.left, pad.right)
+      ty = clamp(ty, pad.top, pad.bottom)
       if (tooClose(tx, ty, s)) {
         tx += s.lane > 0.5 ? 48 : -48
+        tx = clamp(tx, pad.left, pad.right)
+      }
+      // Cap one hop so spiders don't vault across the whole viewport.
+      const maxHop = [150, 220, 180][s.style]
+      let hopDx = tx - s.pos.x
+      let hopDy = ty - s.pos.y
+      const hop = Math.hypot(hopDx, hopDy)
+      if (hop > maxHop) {
+        const k = maxHop / hop
+        tx = s.pos.x + hopDx * k
+        ty = s.pos.y + hopDy * k
+        tx = clamp(tx, pad.left, pad.right)
+        ty = clamp(ty, pad.top, pad.bottom)
       }
       s.from = { x: s.pos.x, y: s.pos.y }
       s.to = { x: tx, y: ty }
@@ -880,12 +976,7 @@
       }
       const cyber = cyberOn()
 
-      if (!view.length) {
-        spiders.forEach((s) => {
-          s.mark.style.opacity = '0'
-        })
-      } else {
-        spiders.forEach((s) => {
+      spiders.forEach((s) => {
           if (!cyber && (s.phase === 'wait' || s.phase === 'drop' || s.phase === 'lift' || s.phase === 'gather')) {
             s.phase = 'hold'
             s.holdLeft = 0
@@ -952,7 +1043,7 @@
                 if (ropeBusy(s)) {
                   s.holdLeft = 1.6 + Math.random() * 1.2
                 } else {
-                  beginGather(s)
+                  beginLift(s)
                 }
               } else {
                 beginMove(s, view)
@@ -984,7 +1075,7 @@
                   s.phase = 'hold'
                   s.holdLeft = 1.6 + Math.random() * 1.2
                 } else {
-                  beginGather(s)
+                  beginLift(s)
                 }
               } else {
                 s.phase = 'hold'
@@ -1022,8 +1113,7 @@
           } else {
             s.mark.style.opacity = '0'
           }
-        })
-      }
+      })
 
       stepPetals(dt, now)
       if (cyber && (petals.length || spiders.some((s) => s.phase === 'drop' || s.phase === 'lift' || s.phase === 'gather'))) {
