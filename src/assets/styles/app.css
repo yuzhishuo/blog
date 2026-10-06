@@ -56,6 +56,21 @@ html.cyber ::selection {
   background: #ff6a1f;
   color: #0a0a0a;
 }
+html.cyber #main-container {
+  position: relative;
+  z-index: 1;
+  background: transparent;
+}
+html.cyber #content {
+  background: transparent;
+}
+#web-crawler-bloom {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
 #toggleCyberMode[aria-pressed='true'] {
   color: #ff6a1f;
   border-color: #ff6a1f;

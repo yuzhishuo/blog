@@ -1,14 +1,13 @@
 ---
 /**
- * One spider already on the page. It does not fetch anything.
- * The body stays small. Eight legs use a staggered gait and, at a
- * paragraph break, the front feet latch onto the next line before the
- * body crosses.
+ * Spiders already on the page. They do not fetch anything.
+ * Eight-leg IK, silk, word highlight. In cyber mode they also
+ * carry a HUD, drop/lift on a rope, and rewind petals on exit.
  */
 ---
 
+<canvas id='web-crawler-bloom' aria-hidden='true'></canvas>
 <canvas id='web-crawler-silk' aria-hidden='true'></canvas>
-<div id='web-crawler-mark' aria-hidden='true'></div>
 
 <script>
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -17,53 +16,148 @@
 
   if (!reduced && article && path !== '/resume') {
     const silk = document.getElementById('web-crawler-silk') as HTMLCanvasElement
-    const mark = document.getElementById('web-crawler-mark') as HTMLDivElement
-    const ctx = silk.getContext('2d')
+    const bloom = document.getElementById('web-crawler-bloom') as HTMLCanvasElement
+    const ctx = silk.getContext('2d', { alpha: true, desynchronized: true })
+    const btx = bloom.getContext('2d', { alpha: true, desynchronized: true })
 
     type Line = { x: number; y: number; w: number }
     type Pt = { x: number; y: number }
     type Foot = { x: number; y: number; tx: number; ty: number; hold: Pt | null }
-
-    const L1 = 28
-    const L2 = 26
-    const slots = [26, 10, -10, -26]
-    const ink = '#ff6a1f'
-    const feet: Foot[] = Array.from({ length: 8 }, () => ({
-      x: 0,
-      y: 0,
-      tx: 0,
-      ty: 0,
-      hold: null
-    }))
-    let seeded = false
-
-    const spider: {
-      phase: 'move' | 'hold'
+    type Spider = {
+      id: number
+      feet: Foot[]
+      seeded: boolean
+      phase: 'wait' | 'drop' | 'move' | 'hold' | 'lift'
       from: Pt
       to: Pt
       t: number
       dur: number
       holdLeft: number
+      crawlLeft: number
       wobble: number
       trail: { x: number; y: number; at: number }[]
       pos: Pt
       heading: number
-      seeded: boolean
-    } = {
-      phase: 'hold',
-      from: { x: 0, y: 0 },
-      to: { x: 0, y: 0 },
-      t: 1,
-      dur: 0.4,
-      holdLeft: 0,
-      wobble: 0,
-      trail: [],
-      pos: { x: 0, y: 0 },
-      heading: Math.PI / 2,
-      seeded: false
+      mark: HTMLDivElement
+      sparkAt: number
+      lastWordAt: number
+      style: number
+      tempo: number
+      lane: number
+      haul: boolean
+      haulK: number
+    }
+    type Petal = {
+      x: number
+      y: number
+      vx: number
+      vy: number
+      rot: number
+      rotv: number
+      w: number
+      h: number
+      z: number
+      kind: 0 | 1 | 2
+      fill: string
+      hi: string
+      u: number
+      owner: number
+      rewind: boolean
+      age: number
+      life: number
+      flutter: number
+      grounded: boolean
+      stuck: boolean
     }
 
-    function linesInView(): Line[] {
+    const L1 = 28
+    const L2 = 26
+    const slots = [26, 10, -10, -26]
+    const ink = '#ff6a1f'
+    const PETAL_CAP = 220
+    const FOIL = [
+      { fill: '#ff3d6e', hi: '#ffe08a' },
+      { fill: '#ffd000', hi: '#fff6c2' },
+      { fill: '#4ecbff', hi: '#e9fbff' },
+      { fill: '#c084fc', hi: '#f5e8ff' },
+      { fill: '#ff8a3d', hi: '#ffe2c4' },
+      { fill: '#3dffb0', hi: '#dbfff1' },
+      { fill: '#ff5ad5', hi: '#ffd8f3' },
+      { fill: '#f4f7ff', hi: '#ffffff' }
+    ]
+    let nextId = 1
+    let silkDpr = 1
+    let bloomDpr = 1
+
+    function cyberOn(): boolean {
+      return document.documentElement.classList.contains('cyber')
+    }
+
+    function packCount(): number {
+      if (cyberOn()) {
+        return window.innerWidth < 520 ? 2 : 3
+      }
+      return window.innerWidth < 720 ? 1 : 2
+    }
+
+    function makeSpider(slot: number): Spider {
+      const mark = document.createElement('div')
+      mark.className = 'web-crawler-mark'
+      mark.setAttribute('aria-hidden', 'true')
+      document.body.appendChild(mark)
+      const style = slot % 3
+      return {
+        id: nextId++,
+        feet: Array.from({ length: 8 }, () => ({
+          x: 0,
+          y: 0,
+          tx: 0,
+          ty: 0,
+          hold: null
+        })),
+        seeded: false,
+        phase: 'wait',
+        from: { x: 0, y: 0 },
+        to: { x: 0, y: 0 },
+        t: 1,
+        dur: 0.4,
+        holdLeft: 0.35 + slot * 2.7 + Math.random() * 0.5,
+        crawlLeft: 0,
+        wobble: 0,
+        trail: [],
+        pos: { x: 0, y: 0 },
+        heading: Math.PI / 2,
+        mark,
+        sparkAt: 0,
+        lastWordAt: 0,
+        style,
+        tempo: [1.28, 0.74, 1.02][style],
+        lane: [0.2, 0.5, 0.8][style],
+        haul: false,
+        haulK: 1
+      }
+    }
+
+    const spiders: Spider[] = []
+    function syncPack() {
+      const n = packCount()
+      while (spiders.length < n) {
+        spiders.push(makeSpider(spiders.length))
+      }
+      while (spiders.length > n) {
+        const s = spiders.pop()
+        s?.mark.remove()
+      }
+    }
+
+    let lines: Line[] = []
+    let linesAt = 0
+    function linesInView(force = false): Line[] {
+      const now = performance.now()
+      if (!force && now - linesAt < 180) {
+        return lines
+      }
+      linesAt = now
       const blocks = article.querySelectorAll('p, li, h2, h3, h4, blockquote')
       const out: Line[] = []
       const top = 64
@@ -90,7 +184,8 @@
           })
         }
       })
-      return out
+      lines = out
+      return lines
     }
 
     function isCjk(ch: string): boolean {
@@ -101,16 +196,9 @@
     let lastFloatKey = ''
     let lastFloatAt = 0
 
-    function cyberOn(): boolean {
-      return document.documentElement.classList.contains('cyber')
-    }
-
     function floatWord(rect: DOMRect, text: string, now: number) {
       const key = `${text}@${Math.round(rect.left)}:${Math.round(rect.top)}`
-      if (key === lastFloatKey || now - lastFloatAt < 140) {
-        return
-      }
-      if (document.querySelectorAll('.cyber-float').length > 14) {
+      if (key === lastFloatKey || now - lastFloatAt < 180) {
         return
       }
       lastFloatKey = key
@@ -167,17 +255,404 @@
       return { rect, text: text.slice(a, b) }
     }
 
+    const petals: Petal[] = []
+
     function resizeSilk() {
-      const dpr = Math.min(window.devicePixelRatio || 1, 2)
-      silk.width = Math.floor(window.innerWidth * dpr)
-      silk.height = Math.floor(window.innerHeight * dpr)
+      silkDpr = Math.min(window.devicePixelRatio || 1, 1.5)
+      bloomDpr = Math.min(window.devicePixelRatio || 1, 1.25) * 0.72
+      silk.width = Math.floor(window.innerWidth * silkDpr)
+      silk.height = Math.floor(window.innerHeight * silkDpr)
       silk.style.width = `${window.innerWidth}px`
       silk.style.height = `${window.innerHeight}px`
-      ctx?.setTransform(dpr, 0, 0, dpr, 0, 0)
+      bloom.width = Math.floor(window.innerWidth * bloomDpr)
+      bloom.height = Math.floor(window.innerHeight * bloomDpr)
+      bloom.style.width = `${window.innerWidth}px`
+      bloom.style.height = `${window.innerHeight}px`
+      ctx?.setTransform(silkDpr, 0, 0, silkDpr, 0, 0)
+      btx?.setTransform(bloomDpr, 0, 0, bloomDpr, 0, 0)
     }
 
     function clamp(n: number, lo: number, hi: number): number {
       return Math.min(hi, Math.max(lo, n))
+    }
+
+    function ease(u: number): number {
+      return u * u * (3 - 2 * u)
+    }
+
+    function ropePoint(sky: Pt, end: Pt, u: number, now: number): Pt {
+      const sway = Math.sin(now / 240 + sky.x * 0.015) * 16 * u * (1 - u) * 4
+      return {
+        x: sky.x + (end.x - sky.x) * u + sway,
+        y: sky.y + (end.y - sky.y) * u
+      }
+    }
+
+    function spiderById(id: number): Spider | undefined {
+      for (let i = 0; i < spiders.length; i++) {
+        if (spiders[i].id === id) {
+          return spiders[i]
+        }
+      }
+      return undefined
+    }
+
+    function paintOf(i: number): { fill: string; hi: string } {
+      return FOIL[i & 7]
+    }
+
+    function trimPetals() {
+      if (petals.length <= PETAL_CAP) {
+        return
+      }
+      const keep: Petal[] = []
+      const rest: Petal[] = []
+      for (let i = 0; i < petals.length; i++) {
+        const p = petals[i]
+        if (p.rewind || p.grounded) {
+          keep.push(p)
+        } else {
+          rest.push(p)
+        }
+      }
+      const overflow = petals.length - PETAL_CAP
+      rest.splice(0, Math.min(overflow, rest.length))
+      petals.length = 0
+      petals.push(...keep, ...rest)
+      if (petals.length > PETAL_CAP) {
+        petals.splice(0, petals.length - PETAL_CAP)
+      }
+    }
+
+    function explodeAlongRope(
+      owner: Spider,
+      sky: Pt,
+      end: Pt,
+      now: number,
+      count: number
+    ) {
+      for (let i = 0; i < count; i++) {
+        const u = Math.random()
+        const origin = ropePoint(sky, end, u, now)
+        const z = 0.18 + Math.random() * 0.82
+        const a = (Math.random() - 0.35) * Math.PI
+        const burst = 140 + z * 260 + Math.random() * 90
+        const kind = (Math.random() < 0.62 ? 0 : Math.random() < 0.55 ? 1 : 2) as 0 | 1 | 2
+        const paint = paintOf(i + owner.id)
+        const ribbon = kind === 0
+        petals.push({
+          x: origin.x,
+          y: origin.y,
+          vx: Math.cos(a) * burst,
+          vy: Math.abs(Math.sin(a)) * burst * 0.45 + 120 + Math.random() * 80,
+          rot: a,
+          rotv: (Math.random() - 0.5) * (ribbon ? 12 : 8),
+          w: ribbon ? 26 + z * 28 : kind === 1 ? 8 + z * 7 : 6 + z * 6,
+          h: ribbon ? 2.4 + z * 1.4 : kind === 1 ? 8 + z * 7 : 6 + z * 5,
+          z,
+          kind,
+          fill: paint.fill,
+          hi: paint.hi,
+          u,
+          owner: owner.id,
+          rewind: false,
+          age: 0,
+          life: 4.2 + z * 1.4,
+          flutter: Math.random() * Math.PI * 2,
+          grounded: false,
+          stuck: false
+        })
+      }
+      trimPetals()
+    }
+
+    function pickLine(view: Line[], preferLower = Math.random() < 0.67, lane = 0.5): Line {
+      const cut = window.innerHeight * (2 / 3)
+      const pool = view.filter((l) => (preferLower ? l.y >= cut : l.y < cut))
+      const use = pool.length ? pool : view
+      const want = window.innerWidth * lane
+      const ranked = [...use].sort(
+        (a, b) => Math.abs(a.x + a.w / 2 - want) - Math.abs(b.x + b.w / 2 - want)
+      )
+      const near = ranked.slice(0, Math.max(3, Math.ceil(ranked.length * 0.45)))
+      return near[Math.floor(Math.random() * near.length)]
+    }
+
+    function tooClose(x: number, y: number, self: Spider): boolean {
+      for (let i = 0; i < spiders.length; i++) {
+        const o = spiders[i]
+        if (o === self || o.phase === 'wait') {
+          continue
+        }
+        if (Math.hypot(o.pos.x - x, o.pos.y - y) < 86) {
+          return true
+        }
+      }
+      return false
+    }
+
+    function ropeBusy(self: Spider): boolean {
+      for (let i = 0; i < spiders.length; i++) {
+        const o = spiders[i]
+        if (o === self) {
+          continue
+        }
+        if (o.phase === 'drop' || o.phase === 'lift') {
+          return true
+        }
+      }
+      return false
+    }
+
+    function pickLand(view: Line[], self: Spider): Pt {
+      let best = { x: self.lane * window.innerWidth, y: window.innerHeight * 0.75 }
+      for (let n = 0; n < 8; n++) {
+        const preferLower = self.style === 2 ? Math.random() < 0.86 : Math.random() < 0.62
+        const line = pickLine(view, preferLower, self.lane)
+        const x = clamp(
+          line.x + line.w * (0.15 + Math.random() * 0.7),
+          line.x + 10,
+          line.x + line.w - 10
+        )
+        const pt = { x, y: line.y }
+        if (!tooClose(pt.x, pt.y, self)) {
+          return pt
+        }
+        best = pt
+      }
+      return best
+    }
+
+    function beginDrop(s: Spider, view: Line[]) {
+      const land = pickLand(view, s)
+      s.from = { x: land.x + (Math.random() - 0.5) * 28, y: 4 }
+      s.to = land
+      s.pos = { ...s.from }
+      s.t = 0
+      s.dur = [0.72, 1.38, 1.02][s.style] + Math.random() * 0.18
+      s.phase = 'drop'
+      s.heading = Math.PI / 2
+      explodeAlongRope(s, s.from, s.to, performance.now(), 56 + s.style * 10)
+    }
+
+    function beginLift(s: Spider) {
+      s.from = { x: s.pos.x, y: s.pos.y }
+      s.to = { x: s.pos.x + (Math.random() - 0.5) * 18, y: 4 }
+      s.t = 0
+      s.dur = [2.6, 3.5, 3.0][s.style]
+      s.phase = 'lift'
+      s.heading = -Math.PI / 2
+      s.haul = false
+      s.haulK = 1
+      for (let i = 0; i < petals.length; i++) {
+        const p = petals[i]
+        if (p.owner !== s.id) {
+          continue
+        }
+        p.rewind = true
+        p.grounded = false
+        p.stuck = false
+        p.age = 0
+        p.vx *= 0.25
+        p.vy = Math.min(30, p.vy * 0.15)
+      }
+    }
+
+    function ropeSamples(sky: Pt, end: Pt, now: number, n = 26): Pt[] {
+      const dx = end.x - sky.x
+      const dy = end.y - sky.y
+      const len = Math.hypot(dx, dy) || 1
+      const px = -dy / len
+      const py = dx / len
+      const pts: Pt[] = []
+      for (let i = 0; i <= n; i++) {
+        const u = i / n
+        const base = ropePoint(sky, end, u, now)
+        const twist = Math.sin(u * 16 + now / 200) * (0.9 + 6 * u * (1 - u))
+        pts.push({ x: base.x + px * twist, y: base.y + py * twist })
+      }
+      return pts
+    }
+
+    function strokeRope(c: CanvasRenderingContext2D, pts: Pt[], width: number, color: string) {
+      if (pts.length < 2) {
+        return
+      }
+      c.strokeStyle = color
+      c.lineWidth = width
+      c.lineCap = 'round'
+      c.lineJoin = 'round'
+      c.beginPath()
+      c.moveTo(pts[0].x, pts[0].y)
+      for (let i = 1; i < pts.length; i++) {
+        c.lineTo(pts[i].x, pts[i].y)
+      }
+      c.stroke()
+    }
+
+    function drawRope(sky: Pt, end: Pt, now: number) {
+      if (!ctx) {
+        return
+      }
+      const pts = ropeSamples(sky, end, now)
+      strokeRope(ctx, pts, 3.2, 'rgba(255, 150, 70, 0.18)')
+      strokeRope(ctx, pts, 1.25, 'rgba(255, 228, 190, 0.95)')
+      const hi: Pt[] = pts.map((p, i) => ({
+        x: p.x - 0.7,
+        y: p.y - 0.35 + Math.sin(i * 0.7) * 0.2
+      }))
+      strokeRope(ctx, hi, 0.45, 'rgba(255, 255, 255, 0.72)')
+    }
+
+    function homeFor(p: Petal, now: number): Pt | null {
+      const s = spiderById(p.owner)
+      if (!s) {
+        return null
+      }
+      if (s.phase === 'lift') {
+        return ropePoint(s.to, s.pos, p.u, now)
+      }
+      if (s.phase === 'drop') {
+        return ropePoint(s.from, s.to, p.u, now)
+      }
+      return ropePoint({ x: s.pos.x, y: 4 }, s.pos, p.u, now)
+    }
+
+    function stepPetals(dt: number, now: number) {
+      const floorBase = window.innerHeight - 8
+      let w = 0
+      for (let i = 0; i < petals.length; i++) {
+        const p = petals[i]
+        if (p.rewind) {
+          const home = homeFor(p, now)
+          if (!home) {
+            continue
+          }
+          const s = spiderById(p.owner)
+          const pull = 0.85 + p.z * 0.25
+          p.vx += (home.x - p.x) * pull * dt
+          p.vy += (home.y - p.y) * pull * dt
+          p.vy -= 70 * dt
+          p.vx *= 1 - 1.2 * dt
+          p.vy *= 1 - 0.9 * dt
+          p.x += p.vx * dt
+          p.y += p.vy * dt
+          p.rot += p.rotv * dt * 0.8
+          const dx = p.x - home.x
+          const dy = p.y - home.y
+          if (dx * dx + dy * dy < 380) {
+            continue
+          }
+        } else {
+          p.age += dt
+          const rest = floorBase - p.z * 20
+          if (!p.grounded) {
+            p.vy += (780 + p.z * 240) * dt
+            p.vx += Math.sin(now * 0.007 + p.flutter) * (90 + p.z * 110) * dt
+            p.vx *= 1 - 0.5 * dt
+            p.x += p.vx * dt
+            p.y += p.vy * dt
+            p.rot += p.rotv * dt
+            if (p.y >= rest) {
+              p.y = rest
+              if (p.vy > 90) {
+                p.vy *= -0.16
+              } else {
+                p.vy = 0
+                p.grounded = true
+                p.rotv *= 0.2
+              }
+            }
+          } else {
+            p.vx += Math.sin(now * 0.003 + p.flutter) * 18 * dt
+            p.vx *= 1 - 2.8 * dt
+            p.x += p.vx * dt
+            p.y = rest
+            p.rot += p.rotv * dt
+            p.rotv *= 1 - 2.2 * dt
+          }
+          if (p.x < 6) {
+            p.x = 6
+            p.vx = Math.abs(p.vx) * 0.4
+          } else if (p.x > window.innerWidth - 6) {
+            p.x = window.innerWidth - 6
+            p.vx = -Math.abs(p.vx) * 0.4
+          }
+        }
+        petals[w++] = p
+      }
+      petals.length = w
+    }
+
+    function drawBloom(now: number) {
+      if (!btx) {
+        return
+      }
+      btx.setTransform(1, 0, 0, 1, 0, 0)
+      btx.clearRect(0, 0, bloom.width, bloom.height)
+      btx.setTransform(bloomDpr, 0, 0, bloomDpr, 0, 0)
+      btx.lineCap = 'round'
+      for (let i = 0; i < spiders.length; i++) {
+        const s = spiders[i]
+        if (s.phase !== 'drop' && s.phase !== 'lift' && s.phase !== 'gather') {
+          continue
+        }
+        const sky = s.phase === 'drop' ? s.from : s.to
+        const pts = ropeSamples(sky, s.pos, now, 18)
+        if (btx) {
+          strokeRope(btx, pts, 8, 'rgba(255, 160, 80, 0.16)')
+        }
+      }
+      for (let i = 0; i < petals.length; i++) {
+        const p = petals[i]
+        const live = 0.72 + p.z * 0.28
+        btx.globalAlpha = live
+        btx.save()
+        btx.translate(p.x, p.y)
+        btx.rotate(p.rot)
+        if (p.kind === 0) {
+          const wave = Math.sin(p.rot * 1.4) * (p.h * 2.2)
+          const flip = 0.35 + 0.65 * Math.abs(Math.cos(p.rot * 0.7))
+          btx.lineCap = 'round'
+          btx.strokeStyle = p.fill
+          btx.lineWidth = p.h * flip
+          btx.beginPath()
+          btx.moveTo(-p.w / 2, 0)
+          btx.quadraticCurveTo(0, wave, p.w / 2, -wave * 0.35)
+          btx.stroke()
+          btx.strokeStyle = p.hi
+          btx.lineWidth = Math.max(0.6, p.h * 0.35 * flip)
+          btx.beginPath()
+          btx.moveTo(-p.w / 2.4, -0.4)
+          btx.quadraticCurveTo(0, wave * 0.7, p.w / 2.6, -wave * 0.25)
+          btx.stroke()
+        } else if (p.kind === 1) {
+          const flip = Math.max(0.18, Math.abs(Math.cos(p.rot)))
+          btx.scale(1, flip)
+          btx.fillStyle = p.fill
+          btx.beginPath()
+          if (btx.roundRect) {
+            btx.roundRect(-p.w / 2, -p.h / 2, p.w, p.h, 1.4)
+          } else {
+            btx.rect(-p.w / 2, -p.h / 2, p.w, p.h)
+          }
+          btx.fill()
+          btx.fillStyle = p.hi
+          btx.globalAlpha = live * 0.55
+          btx.fillRect(-p.w / 2, -p.h / 2, p.w * 0.45, p.h * 0.4)
+        } else {
+          btx.fillStyle = p.fill
+          btx.beginPath()
+          btx.ellipse(0, 0, p.w * 0.5, p.h * 0.42, 0, 0, Math.PI * 2)
+          btx.fill()
+          btx.fillStyle = p.hi
+          btx.beginPath()
+          btx.ellipse(-p.w * 0.14, -p.h * 0.12, p.w * 0.16, p.h * 0.12, 0, 0, Math.PI * 2)
+          btx.fill()
+        }
+        btx.restore()
+      }
+      btx.globalAlpha = 1
     }
 
     function aimFor(i: number, hip: Pt, heading: number, reach: Pt | null): Pt {
@@ -196,20 +671,20 @@
       }
     }
 
-    function stepFeet(now: number, dt: number, hip: Pt, heading: number, reach: Pt | null) {
-      for (let i = 0; i < feet.length; i++) {
-        const foot = feet[i]
+    function stepFeet(s: Spider, now: number, dt: number, reach: Pt | null) {
+      for (let i = 0; i < s.feet.length; i++) {
+        const foot = s.feet[i]
         const phase = (now / 460 + (i % 2) * 0.5 + (i % 4) * 0.05) % 1
         const lifting = phase < 0.38
-        if (!seeded) {
-          const aim = aimFor(i, hip, heading, reach)
+        if (!s.seeded) {
+          const aim = aimFor(i, s.pos, s.heading, reach)
           foot.x = aim.x
           foot.y = aim.y
           foot.tx = aim.x
           foot.ty = aim.y
           foot.hold = { x: aim.x, y: aim.y }
         } else if (lifting) {
-          const aim = aimFor(i, hip, heading, reach)
+          const aim = aimFor(i, s.pos, s.heading, reach)
           const lift = Math.sin((phase / 0.38) * Math.PI) * 8
           const side = i < 4 ? -1 : 1
           foot.tx = aim.x
@@ -224,10 +699,10 @@
         foot.x += (foot.tx - foot.x) * Math.min(1, dt * k)
         foot.y += (foot.ty - foot.y) * Math.min(1, dt * k)
       }
-      seeded = true
+      s.seeded = true
     }
 
-    function drawLeg(hip: Pt, foot: Pt, sideSign: number, color: string) {
+    function drawLeg(hip: Pt, foot: Pt, sideSign: number) {
       if (!ctx) {
         return
       }
@@ -242,8 +717,6 @@
       const kneeY = hip.y + Math.sin(ang + bend) * L1
       ctx.strokeStyle = ink
       ctx.fillStyle = ink
-      ctx.shadowColor = 'rgba(255, 90, 20, 0.85)'
-      ctx.shadowBlur = 6
       ctx.lineWidth = 1.7
       ctx.beginPath()
       ctx.moveTo(hip.x, hip.y)
@@ -255,7 +728,7 @@
       ctx.fill()
     }
 
-    function drawBody(hip: Pt, heading: number, color: string) {
+    function drawBody(hip: Pt, heading: number) {
       if (!ctx) {
         return
       }
@@ -263,8 +736,6 @@
       ctx.translate(hip.x, hip.y)
       ctx.rotate(heading)
       ctx.fillStyle = ink
-      ctx.shadowColor = 'rgba(255, 90, 20, 0.9)'
-      ctx.shadowBlur = 10
       ctx.beginPath()
       ctx.ellipse(-7, 0, 9, 6, 0, 0, Math.PI * 2)
       ctx.fill()
@@ -284,8 +755,6 @@
       const top = y - h / 2
       const arm = 14
       ctx.save()
-      ctx.shadowColor = 'rgba(255, 90, 20, 0.55)'
-      ctx.shadowBlur = 8
       ctx.strokeStyle = 'rgba(255, 106, 31, 0.9)'
       ctx.lineWidth = 1.25
       const corners: [number, number, number, number][] = [
@@ -301,23 +770,15 @@
         ctx.lineTo(cx + sx * arm, cy)
         ctx.stroke()
       }
-      ctx.shadowBlur = 0
       ctx.strokeStyle = 'rgba(255, 106, 31, 0.16)'
       ctx.lineWidth = 1
+      ctx.beginPath()
       for (let i = 1; i < 4; i++) {
         const gy = top + (h * i) / 4
-        ctx.beginPath()
         ctx.moveTo(left, gy)
         ctx.lineTo(left + w, gy)
-        ctx.stroke()
       }
-      for (let i = 1; i < 6; i++) {
-        const gx = left + (w * i) / 6
-        ctx.beginPath()
-        ctx.moveTo(gx, top)
-        ctx.lineTo(gx, top + h)
-        ctx.stroke()
-      }
+      ctx.stroke()
       const scan = top + ((now / 16) % h)
       ctx.strokeStyle = 'rgba(255, 160, 70, 0.55)'
       ctx.beginPath()
@@ -328,154 +789,337 @@
       ctx.fillStyle = 'rgba(255, 150, 70, 0.92)'
       ctx.textAlign = 'left'
       ctx.fillText('GAIT  STAGGERED 8-LEG', left, top - 8)
-      ctx.fillText(
-        `ATTRACTOR  (${Math.round(x)}, ${Math.round(y)})`,
-        left,
-        top + h + 14
-      )
+      ctx.fillText(`ATTRACTOR  (${Math.round(x)}, ${Math.round(y)})`, left, top + h + 14)
       ctx.restore()
     }
 
-    function beginMove(lines: Line[]) {
-      if (!spider.seeded) {
-        const line = lines[Math.floor(Math.random() * lines.length)]
-        spider.pos = {
-          x: line.x + line.w * (0.25 + Math.random() * 0.5),
+    function beginMove(s: Spider, view: Line[]) {
+      const preferLower =
+        s.style === 2 ? Math.random() < 0.84 : s.style === 0 ? Math.random() < 0.48 : Math.random() < 0.62
+      if (s.pos.x === 0 && s.pos.y === 0) {
+        const line = pickLine(view, preferLower, s.lane)
+        s.pos = {
+          x: clamp(line.x + line.w * s.lane, line.x + 10, line.x + line.w - 10),
           y: line.y
         }
-        spider.seeded = true
       }
-      const vertical = lines.filter((l) => Math.abs(l.y - spider.pos.y) > 22)
-      const climb = Math.random() < 0.84 && vertical.length > 0
-      let tx = spider.pos.x
-      let ty = spider.pos.y
+      const cut = window.innerHeight * (2 / 3)
+      const band = view.filter((l) => (preferLower ? l.y >= cut : l.y < cut))
+      const pool0 = band.length ? band : view
+      const vertical = pool0.filter((l) => Math.abs(l.y - s.pos.y) > 22)
+      const climbChance = [0.9, 0.42, 0.7][s.style]
+      const climb = Math.random() < climbChance && vertical.length > 0
+      let tx = s.pos.x
+      let ty = s.pos.y
       if (climb) {
-        const dir = Math.random() < 0.5 ? 1 : -1
-        let pool = vertical.filter((l) => Math.sign(l.y - spider.pos.y) === dir || l.y === spider.pos.y)
+        const dir =
+          s.style === 2
+            ? Math.random() < 0.72 ? 1 : -1
+            : s.style === 0
+              ? Math.random() < 0.5
+                ? 1
+                : -1
+              : Math.random() < 0.4
+                ? 1
+                : -1
+        let pool = vertical.filter(
+          (l) => Math.sign(l.y - s.pos.y) === dir || l.y === s.pos.y
+        )
         if (!pool.length) {
           pool = vertical
         }
+        const want = window.innerWidth * s.lane
         pool = [...pool].sort(
-          (a, b) => Math.abs(a.y - spider.pos.y) - Math.abs(b.y - spider.pos.y)
+          (a, b) =>
+            Math.abs(a.y - s.pos.y) * 0.6 +
+            Math.abs(a.x + a.w / 2 - want) * 0.4 -
+            (Math.abs(b.y - s.pos.y) * 0.6 + Math.abs(b.x + b.w / 2 - want) * 0.4)
         )
-        const near = pool.slice(0, Math.min(4, pool.length))
-        const pickFrom = Math.random() < 0.22 ? pool : near
-        const line = pickFrom[Math.floor(Math.random() * pickFrom.length)]
-        const drift = (Math.random() - 0.5) * (10 + Math.random() * 28)
-        tx = clamp(spider.pos.x + drift, line.x + 10, line.x + line.w - 10)
+        const near = pool.slice(0, Math.min(s.style === 1 ? 7 : 4, pool.length))
+        const line = near[Math.floor(Math.random() * near.length)]
+        const drift = (Math.random() - 0.5) * ([18, 48, 26][s.style] + Math.random() * 16)
+        tx = clamp(s.pos.x + drift, line.x + 10, line.x + line.w - 10)
         ty = line.y
       } else {
-        const line = lines[Math.floor(Math.random() * lines.length)]
-        tx = line.x + 10 + Math.random() * Math.max(8, line.w - 20)
+        const line = pickLine(pool0, preferLower, s.lane)
+        tx = clamp(
+          line.x + 10 + Math.random() * Math.max(8, line.w - 20),
+          line.x + 10,
+          line.x + line.w - 10
+        )
         ty = line.y
       }
-      spider.from = { x: spider.pos.x, y: spider.pos.y }
-      spider.to = { x: tx, y: ty }
-      spider.t = 0
-      const dist = Math.max(12, Math.hypot(tx - spider.pos.x, ty - spider.pos.y))
-      const speed = 64 + Math.random() * 90
-      spider.dur = clamp(dist / speed, 0.2, 1.4)
-      spider.wobble = (Math.random() < 0.5 ? -1 : 1) * (8 + Math.random() * 18)
-      spider.phase = 'move'
-      spider.heading = Math.atan2(ty - spider.pos.y, tx - spider.pos.x)
+      if (tooClose(tx, ty, s)) {
+        tx += s.lane > 0.5 ? 48 : -48
+      }
+      s.from = { x: s.pos.x, y: s.pos.y }
+      s.to = { x: tx, y: ty }
+      s.t = 0
+      const dist = Math.max(12, Math.hypot(tx - s.pos.x, ty - s.pos.y))
+      const speed = ([92, 46, 68][s.style] + Math.random() * 36) * s.tempo
+      s.dur = clamp(dist / speed, 0.18, [0.9, 1.8, 1.25][s.style])
+      s.wobble =
+        (Math.random() < 0.5 ? -1 : 1) * ([6, 22, 12][s.style] + Math.random() * 10)
+      s.phase = 'move'
+      s.heading = Math.atan2(ty - s.pos.y, tx - s.pos.x)
     }
 
     resizeSilk()
-    let lines = linesInView()
+    syncPack()
+    linesInView(true)
     let last = performance.now()
+    let packAt = 0
 
     const tick = (now: number) => {
       const dt = Math.min(0.05, (now - last) / 1000)
       last = now
-      lines = linesInView()
-      if (!lines.length) {
-        mark.style.opacity = '0'
+      const view = linesInView()
+      if (now - packAt > 400) {
+        syncPack()
+        packAt = now
+      }
+      const cyber = cyberOn()
+
+      if (!view.length) {
+        spiders.forEach((s) => {
+          s.mark.style.opacity = '0'
+        })
       } else {
-        if (spider.phase === 'hold') {
-          spider.holdLeft -= dt
-          if (spider.holdLeft <= 0) {
-            beginMove(lines)
+        spiders.forEach((s) => {
+          if (!cyber && (s.phase === 'wait' || s.phase === 'drop' || s.phase === 'lift' || s.phase === 'gather')) {
+            s.phase = 'hold'
+            s.holdLeft = 0
+            s.crawlLeft = 99
           }
-        } else {
-          spider.t += dt / spider.dur
-          const u = clamp(spider.t, 0, 1)
-          const e = u * u * (3 - 2 * u)
-          const dx = spider.to.x - spider.from.x
-          const dy = spider.to.y - spider.from.y
-          const dist = Math.hypot(dx, dy) || 1
-          const bow = Math.sin(u * Math.PI) * spider.wobble
-          const prev = { x: spider.pos.x, y: spider.pos.y }
-          spider.pos = {
-            x: spider.from.x + dx * e + (-dy / dist) * bow,
-            y: spider.from.y + dy * e + (dx / dist) * bow
-          }
-          const vx = spider.pos.x - prev.x
-          const vy = spider.pos.y - prev.y
-          if (Math.hypot(vx, vy) > 0.35) {
-            spider.heading = Math.atan2(vy, vx)
-          }
-          if (u >= 1) {
-            spider.pos = { x: spider.to.x, y: spider.to.y }
-            spider.phase = 'hold'
-            spider.holdLeft = 0.04 + Math.random() * 0.22
-          }
-        }
 
-        const reach = spider.phase === 'move' ? spider.to : null
-        stepFeet(now, dt, spider.pos, spider.heading, reach)
-        spider.trail.push({ x: spider.pos.x, y: spider.pos.y, at: now })
-        spider.trail = spider.trail.filter((p) => now - p.at < 1600)
-
-        const word = wordAt(spider.pos.x, spider.pos.y)
-        if (word) {
-          mark.style.opacity = '1'
-          mark.style.transform = `translate(${word.rect.left}px, ${word.rect.top}px)`
-          mark.style.width = `${word.rect.width}px`
-          mark.style.height = `${word.rect.height}px`
-          if (cyberOn()) {
-            floatWord(word.rect, word.text, now)
+          if (s.phase === 'wait') {
+            s.holdLeft -= dt
+            if (s.holdLeft <= 0) {
+              if (cyber) {
+                if (ropeBusy(s)) {
+                  s.holdLeft = 1.5 + Math.random() * 1.1
+                } else {
+                  beginDrop(s, view)
+                }
+              } else {
+                beginMove(s, view)
+                s.crawlLeft = 99
+              }
+            }
+            if (s.phase === 'wait') {
+              s.mark.style.opacity = '0'
+              return
+            }
+          } else if (s.phase === 'gather') {
+            s.t += dt / s.dur
+            s.heading = -Math.PI / 2
+            if (s.t >= 1) {
+              const hanging = petals.some(
+                (p) => p.owner === s.id && p.rewind && !p.stuck
+              )
+              if (!hanging || s.t >= 1.4) {
+                beginLift(s)
+              }
+            }
+          } else if (s.phase === 'drop' || s.phase === 'lift') {
+            s.t += dt / s.dur
+            const u = clamp(s.t, 0, 1)
+            const e = ease(u)
+            const sky = s.phase === 'drop' ? s.from : s.to
+            const end = s.phase === 'drop' ? s.to : s.from
+            const k = s.phase === 'drop' ? e : 1 - e
+            s.pos = ropePoint(sky, end, k, now)
+            s.heading = s.phase === 'drop' ? Math.PI / 2 : -Math.PI / 2
+            if (s.phase === 'drop' && now - s.sparkAt > 90) {
+              explodeAlongRope(s, sky, s.pos, now, 3)
+              s.sparkAt = now
+            }
+            if (u >= 1) {
+              if (s.phase === 'drop') {
+                s.pos = { ...s.to }
+                s.crawlLeft = [5.2, 10.8, 7.4][s.style] + Math.random() * 1.4
+                beginMove(s, view)
+              } else {
+                s.phase = 'wait'
+                s.holdLeft = [0.35, 1.4, 0.7][s.style] + Math.random() * 0.5
+              }
+            }
+          } else if (s.phase === 'hold') {
+            s.holdLeft -= dt
+            s.crawlLeft -= dt
+            if (s.holdLeft <= 0) {
+              if (cyber && s.crawlLeft <= 0) {
+                if (ropeBusy(s)) {
+                  s.holdLeft = 1.6 + Math.random() * 1.2
+                } else {
+                  beginGather(s)
+                }
+              } else {
+                beginMove(s, view)
+              }
+            }
+          } else {
+            s.t += dt / s.dur
+            s.crawlLeft -= dt
+            const u = clamp(s.t, 0, 1)
+            const e = ease(u)
+            const dx = s.to.x - s.from.x
+            const dy = s.to.y - s.from.y
+            const dist = Math.hypot(dx, dy) || 1
+            const bow = Math.sin(u * Math.PI) * s.wobble
+            const prev = { x: s.pos.x, y: s.pos.y }
+            s.pos = {
+              x: s.from.x + dx * e + (-dy / dist) * bow,
+              y: s.from.y + dy * e + (dx / dist) * bow
+            }
+            const vx = s.pos.x - prev.x
+            const vy = s.pos.y - prev.y
+            if (Math.hypot(vx, vy) > 0.35) {
+              s.heading = Math.atan2(vy, vx)
+            }
+            if (u >= 1) {
+              s.pos = { x: s.to.x, y: s.to.y }
+              if (cyber && s.crawlLeft <= 0) {
+                if (ropeBusy(s)) {
+                  s.phase = 'hold'
+                  s.holdLeft = 1.6 + Math.random() * 1.2
+                } else {
+                  beginGather(s)
+                }
+              } else {
+                s.phase = 'hold'
+                s.holdLeft =
+                  [0.03, 0.22, 0.08][s.style] + Math.random() * [0.08, 0.28, 0.14][s.style]
+              }
+            }
           }
-        } else {
-          mark.style.opacity = '0'
-        }
+
+          const reach =
+            s.phase === 'move' ? s.to : s.phase === 'drop' || s.phase === 'lift' ? s.to : null
+          stepFeet(s, now, dt, reach)
+          s.trail.push({ x: s.pos.x, y: s.pos.y, at: now })
+          if (s.trail.length > 18 || (s.trail[0] && now - s.trail[0].at > 900)) {
+            s.trail.shift()
+          }
+
+          if (s.phase !== 'move' && s.phase !== 'hold') {
+            s.mark.style.opacity = '0'
+            return
+          }
+          if (now - s.lastWordAt < 90) {
+            return
+          }
+          s.lastWordAt = now
+          const word = wordAt(s.pos.x, s.pos.y)
+          if (word) {
+            s.mark.style.opacity = '1'
+            s.mark.style.transform = `translate(${word.rect.left}px, ${word.rect.top}px)`
+            s.mark.style.width = `${word.rect.width}px`
+            s.mark.style.height = `${word.rect.height}px`
+            if (cyber) {
+              floatWord(word.rect, word.text, now)
+            }
+          } else {
+            s.mark.style.opacity = '0'
+          }
+        })
+      }
+
+      stepPetals(dt, now)
+      if (cyber && (petals.length || spiders.some((s) => s.phase === 'drop' || s.phase === 'lift' || s.phase === 'gather'))) {
+        drawBloom(now)
+      } else if (btx) {
+        btx.setTransform(1, 0, 0, 1, 0, 0)
+        btx.clearRect(0, 0, bloom.width, bloom.height)
       }
 
       if (ctx) {
-        ctx.clearRect(0, 0, window.innerWidth, window.innerHeight)
-        ctx.shadowBlur = 0
+        ctx.setTransform(1, 0, 0, 1, 0, 0)
+        ctx.clearRect(0, 0, silk.width, silk.height)
+        ctx.setTransform(silkDpr, 0, 0, silkDpr, 0, 0)
         ctx.lineCap = 'round'
         ctx.lineJoin = 'round'
-        ctx.lineWidth = 1
-        for (let i = 1; i < spider.trail.length; i++) {
-          const a = spider.trail[i - 1]
-          const b = spider.trail[i]
-          const age = 1 - (now - b.at) / 1600
-          ctx.strokeStyle = `rgba(255, 106, 31, ${Math.max(0, age) * 0.55})`
-          ctx.beginPath()
-          ctx.moveTo(a.x, a.y)
-          ctx.lineTo(b.x, b.y)
-          ctx.stroke()
-        }
-        if (lines.length) {
-          for (let i = 0; i < feet.length; i++) {
+        ctx.shadowBlur = 0
+        spiders.forEach((s) => {
+          if (s.phase === 'drop' || s.phase === 'lift' || s.phase === 'gather') {
+            const sky = s.phase === 'drop' ? s.from : s.to
+            drawRope(sky, s.pos, now)
+          }
+          if (s.trail.length > 1) {
+            ctx.beginPath()
+            ctx.moveTo(s.trail[0].x, s.trail[0].y)
+            for (let i = 1; i < s.trail.length; i++) {
+              ctx.lineTo(s.trail[i].x, s.trail[i].y)
+            }
+            const age = 1 - (now - s.trail[s.trail.length - 1].at) / 900
+            ctx.strokeStyle = `rgba(255, 106, 31, ${Math.max(0.12, age) * 0.5})`
+            ctx.lineWidth = 1
+            ctx.stroke()
+          }
+          if (s.phase === 'wait') {
+            return
+          }
+          for (let i = 0; i < s.feet.length; i++) {
             const along = slots[i % 4]
             const side = i < 4 ? -1 : 1
-            const perp = spider.heading + Math.PI / 2
+            const perp = s.heading + Math.PI / 2
             const hip = {
-              x: spider.pos.x + Math.cos(spider.heading) * along * 0.35 + Math.cos(perp) * side * 3,
-              y: spider.pos.y + Math.sin(spider.heading) * along * 0.35 + Math.sin(perp) * side * 2.2
+              x:
+                s.pos.x +
+                Math.cos(s.heading) * along * 0.35 +
+                Math.cos(perp) * side * 3,
+              y:
+                s.pos.y +
+                Math.sin(s.heading) * along * 0.35 +
+                Math.sin(perp) * side * 2.2
             }
-            drawLeg(hip, feet[i], side, ink)
+            drawLeg(hip, s.feet[i], side)
           }
-          drawHud(spider.pos.x, spider.pos.y, now)
-          drawBody(spider.pos, spider.heading, ink)
-        }
+          if (cyber) {
+            drawHud(s.pos.x, s.pos.y, now)
+          }
+          drawBody(s.pos, s.heading)
+        })
       }
       requestAnimationFrame(tick)
     }
 
+    function jostleFloor(dy: number) {
+      const power = clamp(dy / 18, 0.2, 4.2)
+      for (let i = 0; i < petals.length; i++) {
+        const p = petals[i]
+        if (p.rewind || p.stuck) {
+          continue
+        }
+        if (!p.grounded && p.y < window.innerHeight - 90) {
+          continue
+        }
+        p.grounded = false
+        p.vy = -55 * power - Math.random() * 95 * power
+        p.vx += (Math.random() - 0.5) * 55 * power
+        p.rotv += (Math.random() - 0.5) * 6 * power
+      }
+    }
+
+    let lastScrollY = window.scrollY
+    window.addEventListener(
+      'scroll',
+      () => {
+        linesAt = 0
+        const y = window.scrollY
+        const dy = y - lastScrollY
+        lastScrollY = y
+        if (!cyberOn() || !petals.length || dy <= 0.4) {
+          return
+        }
+        jostleFloor(dy)
+      },
+      { passive: true }
+    )
     window.addEventListener('resize', () => {
       resizeSilk()
+      syncPack()
+      linesInView(true)
     })
     requestAnimationFrame(tick)
   }
@@ -483,14 +1127,18 @@
 
 <style is:global>
   #web-crawler-silk,
-  #web-crawler-mark {
+  .web-crawler-mark {
     position: fixed;
     inset: 0;
     pointer-events: none;
     z-index: 25;
   }
 
-  #web-crawler-mark {
+  #web-crawler-silk {
+    filter: drop-shadow(0 0 5px rgba(255, 90, 20, 0.78));
+  }
+
+  .web-crawler-mark {
     inset: auto;
     left: 0;
     top: 0;
@@ -499,9 +1147,19 @@
     opacity: 0;
   }
 
+  #web-crawler-bloom {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    mix-blend-mode: screen;
+    filter: blur(0.35px);
+  }
+
   @media (prefers-reduced-motion: reduce), print {
     #web-crawler-silk,
-    #web-crawler-mark {
+    #web-crawler-bloom,
+    .web-crawler-mark {
       display: none;
     }
   }

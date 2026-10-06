@@ -76,6 +76,7 @@ const pagefindIgnore = path === '/resume'
   </head>
 
   <body class='flex justify-center bg-background text-foreground' {...props}>
+    <WebCrawlers />
     <div
       id='main-container'
       class='w-full max-w-[70rem] min-h-[100dvh] flex flex-col justify-between'
@@ -86,7 +87,6 @@ const pagefindIgnore = path === '/resume'
       </div>
       <Footer />
     </div>
-    <WebCrawlers />
 
     {/* Set highlight color */}
     <style define:vars={{ highlightColor }}>
