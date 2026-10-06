@@ -93,7 +93,7 @@ const insights = await resolveInsights(data.insights)
     }
   </style>
 
-  <script define:vars={{ printFileTitle: `${data.name}-${data.intent}-${data.phone}` }}>
+  <script define:vars={{ printFileTitle: `${data.name}-${data.phone}` }}>
     const screenTitle = document.title
     const sheet = () => document.getElementById('resume-sheet')
     const mmPx = (mm) => (mm * 96) / 25.4

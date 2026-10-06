@@ -137,9 +137,7 @@ const emailMasked = data.email
       }
     </p>
     <p class='cv-line'>
-      {[data.years, `求职意向：${data.intent}`, `期望城市：${data.city}`]
-        .filter(Boolean)
-        .join('  ·  ')}
+      {[data.years, data.city ? `期望城市：${data.city}` : ''].filter(Boolean).join('  ·  ')}
     </p>
   </div>
 

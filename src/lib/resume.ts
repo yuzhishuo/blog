@@ -20,7 +20,6 @@ export type ResumeData = {
   phone: string
   email: string
   years: string
-  intent: string
   city: string
   github?: string
   website?: string
