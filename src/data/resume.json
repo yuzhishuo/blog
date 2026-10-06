@@ -1,85 +1,84 @@
-  {
-    "name": "刘轶民",
-    "age": "30岁",
-    "phone": "18630977388",
-    "email": "yimin.muduo@outlook.com",
-    "years": "5年工作经验",
-    "intent": "嵌入式开发工程师（可带人）",
-    "city": "上海",
-    "summary": [
-      "这五年先做通信中间件，再到主机厂做诊断，现在独立**设计并交付**无人车运行时，三块都是自研。主机厂两年里，成立并带领诊断开发与交付小组，从需求对齐、功能安全做到台架和上车联调。",
-      "一块系统能从需求分析、方案设计做到开发交付，并负责任务分解和技术把关。通信中间件四次量产，诊断两次量产；无人车运行时已经在运营，车上稳定性问题能闭环。"
-    ],
-
-    "skills": [
-      "语言与系统：熟练使用 C，熟悉 C++14/17 与常见设计模式；Linux、ThreadX、FreeRTOS；平台 Orin、8195、8295、TC4D。",
-      "通信中间件与协议：DoIP、SOME/IP、DDS（Fast DDS）、TCP/IP（NetX Duo）。",
-      "底软与外设：AUTOSAR MCAL（UART、ADC、SPI、I2C、CAN/CAN FD），letter-shell。",
-      "方法论与标准：熟悉 USE、RED 方法论，以及 V 字模型、ISO 26262 与 AUTOSAR CP 方法论。",
-      "调试与测试：熟练使用 Lauterbach TRACE32 进行 Monitor、Snooper Trace、Cache Analyzer 调试；使用 CANoe、TSMaster 编写 CAPL 与专用脚本，建立测试集。",
-      "稳定性与性能分析：绑核，分析调度时序与热点（ftrace、perf、Perfetto、Tracy、bpftrace、trace-cmd（KernelShark））；用 eBPF 追踪网络丢包；用 ASan、LSan 查越界和泄漏。"
-    ],
-    "education": [
-      {
-        "school": "东北电力大学",
-        "degree": "硕士",
-        "major": "计算机科学与技术",
-        "start": "2019",
-        "end": "2022"
-      },
-      {
-        "school": "安徽理工大学",
-        "degree": "本科",
-        "major": "医学检验技术",
-        "start": "2014",
-        "end": "2018"
-      }
-    ],
-    "experience": [
-      {
-        "company": "新石器（上海）智能科技有限公司",
-        "title": "系统开发高级工程师",
-        "start": "2025.11",
-        "end": "至今",
-        "bullets": [
-          "参与设计并主导部分无人车运行时：数据源引擎、调度引擎、场景引擎、仿真引擎；",
-          "数据源注册式接入，传感器与中间件无感，可同步、异步启停。IMU、GNSS、Camera、Lidar 走同一套接入。", 
-          "调度覆盖实车与仿真：多路时间对齐、按语义建任务、按优先级缓存。",
-          "仿真下与实车同一套运行时配置，虚拟时间轴与墙钟隔离，保证车云、云云一致；",
-          "工程效能:关键进程绑核、内存热路径不现场分配、D状态分析、消除锁优先级反转、缓存优化。"
-        ]
-      },
-      {
-        "company": "上海极氪蓝色新能源技术有限公司",
-        "title": "实时操作系统开发工程师",
-        "start": "2023.11",
-        "end": "2025.11",
-        "bullets": [
-          "负责座椅控制器双 Boot（PBL/SBL）。",
-          "完成 MCU 侧 AUTOSAR MCAL 外设驱动适配与开发，支撑诊断、刷写与台架联调。",
-          "在 SOC 与 MCU 上交付 DoIP、UDS、DoCAN，打通基于以太/CAN 总线的诊断/刷写和状态管理，覆盖中央网关、域控及座椅、油泵等控制器的联调。",
-          "工程效能：为组内搭建测试台架：用 Buildroot 定制 Linux 作为外部诊断仪，3 块 TC4D 分别作为车内网关和左右座椅控制器，验证诊断路由、休眠唤醒、多核刷写（A/B 分区）、DCM 29 服务及 FIM 功能降级。"
-        ]
-      },
-      {
-        "company": "上海商泰汽车信息系统有限公司",
-        "title": "中间件研发工程师",
-        "start": "2022.06",
-        "end": "2023.11",
-        "bullets": [
-          "开发并维护 AUTOSAR SOME/IP 协议栈。协议栈使用 VectorCAST 完成白盒测试并达到代码覆盖率要求；协议一致性测试通过 TC8 测试，并编写 CAPL 脚本并通过 ETS 测试。",
-          "适配 FastDDS 作为为 ara::com 通信中间件的绑定"
-        ]
-      }
-    ],
-    "insights": [
-      {
-        "url": "https://mp.weixin.qq.com/s/U4obtr99TLM2dQsO7HKI9g",
-        "title": "汽车诊断安全：从传输层到应用层的防护机制"
-      },
-      {
-        "url": "https://mp.weixin.qq.com/s/ieOe-UwC4_5zxAH5KtmhhA",
-        "title": "PDU：AUTOSAR CP BSW 层通信架构的核心"
-      }
-    ]
-  }
+{
+  "name": "刘轶民",
+  "age": "30岁",
+  "phone": "18630977388",
+  "email": "yimin.muduo@outlook.com",
+  "years": "5年工作经验",
+  "intent": "嵌入式开发工程师（可带人）",
+  "city": "上海",
+  "summary": [
+    "近五年依次从事车载通信中间件、主机厂诊断开发与交付，以及无人车运行时系统设计与落地；相关工作均以自研为主。",
+    "主机厂期间负责诊断开发与交付小组的组建与带队，覆盖需求对齐、功能安全、台架验证与上车联调。具备从需求分析、方案设计到开发交付的完整闭环能力，并承担任务分解与技术把关。通信中间件四次量产、诊断两次量产；无人车运行时已投入运营，车上稳定性问题可闭环处理。"
+  ],
+  "skills": [
+    "语言与系统：熟练使用 C，熟悉 C++14/17 与常见设计模式；Linux、ThreadX、FreeRTOS；平台 Orin、8195、8295、TC4D。",
+    "通信中间件与协议：DoIP、SOME/IP、DDS（Fast DDS）、TCP/IP（NetX Duo）。",
+    "底软与外设：AUTOSAR MCAL（UART、ADC、SPI、I2C、CAN/CAN FD），letter-shell。",
+    "方法论与标准：熟悉 USE、RED 方法论，以及 V 字模型、ISO 26262 与 AUTOSAR CP 方法论。",
+    "调试与测试：熟练使用 Lauterbach TRACE32 进行 Monitor、Snooper Trace、Cache Analyzer 调试；使用 CANoe、TSMaster 编写 CAPL 与专用脚本，建立测试集。",
+    "稳定性与性能分析：绑核，分析调度时序与热点（ftrace、perf、Perfetto、Tracy、bpftrace、trace-cmd（KernelShark））；用 eBPF 追踪网络丢包；用 ASan、LSan 查越界和泄漏。"
+  ],
+  "education": [
+    {
+      "school": "东北电力大学",
+      "degree": "硕士",
+      "major": "计算机科学与技术",
+      "start": "2019",
+      "end": "2022"
+    },
+    {
+      "school": "安徽理工大学",
+      "degree": "本科",
+      "major": "医学检验技术",
+      "start": "2014",
+      "end": "2018"
+    }
+  ],
+  "experience": [
+    {
+      "company": "新石器（上海）智能科技有限公司",
+      "title": "系统开发高级工程师",
+      "start": "2025.11",
+      "end": "至今",
+      "bullets": [
+        "参与设计并主导部分无人车运行时：数据源引擎、调度引擎、场景引擎、仿真引擎；",
+        "数据源注册式接入，传感器与中间件无感，可同步、异步启停。IMU、GNSS、Camera、Lidar 走同一套接入。",
+        "调度覆盖实车与仿真：多路时间对齐、按语义建任务、按优先级缓存。",
+        "仿真下与实车同一套运行时配置，虚拟时间轴与墙钟隔离，保证车云、云云一致；",
+        "工程效能:关键进程绑核、内存热路径不现场分配、D状态分析、消除锁优先级反转、缓存优化。"
+      ]
+    },
+    {
+      "company": "上海极氪蓝色新能源技术有限公司",
+      "title": "实时操作系统开发工程师",
+      "start": "2023.11",
+      "end": "2025.11",
+      "bullets": [
+        "负责座椅控制器双 Boot（PBL/SBL）。",
+        "完成 MCU 侧 AUTOSAR MCAL 外设驱动适配与开发，支撑诊断、刷写与台架联调。",
+        "在 SOC 与 MCU 上交付 DoIP、UDS、DoCAN，打通基于以太/CAN 总线的诊断/刷写和状态管理，覆盖中央网关、域控及座椅、油泵等控制器的联调。",
+        "工程效能：为组内搭建测试台架：用 Buildroot 定制 Linux 作为外部诊断仪，3 块 TC4D 分别作为车内网关和左右座椅控制器，验证诊断路由、休眠唤醒、多核刷写（A/B 分区）、DCM 29 服务及 FIM 功能降级。"
+      ]
+    },
+    {
+      "company": "上海商泰汽车信息系统有限公司",
+      "title": "中间件研发工程师",
+      "start": "2022.06",
+      "end": "2023.11",
+      "bullets": [
+        "开发并维护 AUTOSAR SOME/IP 协议栈。协议栈使用 VectorCAST 完成白盒测试并达到代码覆盖率要求；协议一致性测试通过 TC8 测试，并编写 CAPL 脚本并通过 ETS 测试。",
+        "适配 FastDDS 作为为 ara::com 通信中间件的绑定"
+      ]
+    }
+  ],
+  "insights": [
+    {
+      "url": "https://mp.weixin.qq.com/s/U4obtr99TLM2dQsO7HKI9g",
+      "title": "汽车诊断安全：从传输层到应用层的防护机制"
+    },
+    {
+      "url": "https://mp.weixin.qq.com/s/ieOe-UwC4_5zxAH5KtmhhA",
+      "title": "PDU：AUTOSAR CP BSW 层通信架构的核心"
+    }
+  ]
+}
