@@ -80,27 +80,47 @@ html.cyber #content {
   position: fixed;
   z-index: 26;
   pointer-events: none;
-  color: #ff6a1f;
-  font-weight: 700;
+  color: rgba(255, 180, 120, 0.92);
+  font-weight: 600;
+  letter-spacing: 0.02em;
   white-space: nowrap;
+  mix-blend-mode: screen;
   text-shadow:
-    0 0 10px rgba(255, 106, 31, 0.95),
-    2px 0 #67e8ff,
-    -2px 0 #ff4d6d;
-  animation: cyber-float-up 780ms ease-out forwards;
+    0 0 8px rgba(255, 106, 31, 0.55),
+    0 0 18px rgba(103, 232, 255, 0.35);
+  animation: cyber-duckweed var(--float-ms, 2.4s) ease-in-out forwards;
+  --drift-x: 18px;
+  --drift-y: -36px;
+  --sway: 10px;
 }
-@keyframes cyber-float-up {
+@keyframes cyber-duckweed {
   0% {
-    transform: translateY(0) skewX(0deg);
-    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.15;
+    filter: blur(0.2px);
   }
-  35% {
-    transform: translateY(-10px) skewX(-10deg);
-    opacity: 1;
+  12% {
+    opacity: 0.95;
+  }
+  45% {
+    transform: translate3d(calc(var(--drift-x) * 0.45), calc(var(--drift-y) * 0.4), 0)
+      scale(1.04);
+    opacity: 0.85;
+  }
+  70% {
+    transform: translate3d(
+        calc(var(--drift-x) * 0.75 + var(--sway)),
+        calc(var(--drift-y) * 0.75),
+        0
+      )
+      scale(1.02);
+    opacity: 0.55;
+    filter: blur(0.4px);
   }
   100% {
-    transform: translateY(-42px) skewX(8deg);
+    transform: translate3d(var(--drift-x), var(--drift-y), 0) scale(0.92);
     opacity: 0;
+    filter: blur(1.2px);
   }
 }
 @media print {
