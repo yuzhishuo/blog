@@ -15,6 +15,7 @@
       "语言与系统：熟练使用 C，熟悉 C++14/17 与常见设计模式；Linux、ThreadX、FreeRTOS；平台 Orin、8195、8295、TC4D。",
       "通信中间件与协议：DoIP、SOME/IP、DDS（Fast DDS）、TCP/IP（NetX Duo）。",
       "底软与外设：AUTOSAR MCAL（UART、ADC、SPI、I2C、CAN/CAN FD），letter-shell。",
+      "方法论与标准：熟悉 USE、RED 方法论，以及 V 字模型、ISO 26262 与 AUTOSAR CP 方法论。",
       "调试与测试：熟练使用 Lauterbach TRACE32 进行 Monitor、Snooper Trace、Cache Analyzer 调试；使用 CANoe、TSMaster 编写 CAPL 与专用脚本，建立测试集。",
       "稳定性与性能分析：绑核，分析调度时序与热点（ftrace、perf、Perfetto、Tracy、bpftrace、trace-cmd（KernelShark））；用 eBPF 追踪网络丢包；用 ASan、LSan 查越界和泄漏。"
     ],
@@ -54,7 +55,7 @@
         "start": "2023.11",
         "end": "2025.11",
         "bullets": [
-          "负责座椅控制器双 Boot（PBL/SBL）：PBL 完成上电初始化、正常启动和编程会话；SBL 在激活后完成擦除和应用程序刷写。",
+          "负责座椅控制器双 Boot（PBL/SBL）。",
           "完成 MCU 侧 AUTOSAR MCAL 外设驱动适配与开发，支撑诊断、刷写与台架联调。",
           "在 SOC 与 MCU 上交付 DoIP、UDS、DoCAN，打通基于以太/CAN 总线的诊断/刷写和状态管理，覆盖中央网关、域控及座椅、油泵等控制器的联调。",
           "工程效能：为组内搭建测试台架：用 Buildroot 定制 Linux 作为外部诊断仪，3 块 TC4D 分别作为车内网关和左右座椅控制器，验证诊断路由、休眠唤醒、多核刷写（A/B 分区）、DCM 29 服务及 FIM 功能降级。"
