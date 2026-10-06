@@ -3,16 +3,15 @@
  * Clean editorial resume — fully left-aligned.
  * Name / phone / email / company stay masked until the visitor clicks the eye.
  */
-import type { ResolvedInsight, ResumeData } from '@/lib/resume'
+import type { ResumeData } from '@/lib/resume'
 import { cn } from 'astro-pure/utils'
 
 interface Props {
   data: ResumeData
-  insights?: ResolvedInsight[]
   class?: string
 }
 
-const { data, insights = [], class: className } = Astro.props
+const { data, class: className } = Astro.props
 
 const maskKeep = (value: string, keepStart = 0, keepEnd = 0) => {
   if (!value) return ''
@@ -280,47 +279,6 @@ const emailMasked = data.email
     </ul>
   </section>
 
-  {
-    insights.length ? (
-      <section class='cv-sec' id='insights'>
-        <h2>
-          原创文章
-          <button
-            type='button'
-            class='cv-print-toggle no-print'
-            data-print-hide='insights'
-            aria-label='打印时隐藏本节'
-            title='打印时隐藏本节'
-          >
-            <svg class='cv-print-on' viewBox='0 0 24 24' width='14' height='14' aria-hidden='true'>
-              <path
-                fill='currentColor'
-                d='M6 9V3h12v6h-2V5H8v4H6zm14 2a2 2 0 0 1 2 2v5h-4v4H6v-4H2v-5a2 2 0 0 1 2-2h16zM8 17v2h8v-2H8zm10-4.5a1 1 0 1 0 0-2 1 1 0 0 0 0 2z'
-              />
-            </svg>
-            <svg class='cv-print-off' viewBox='0 0 24 24' width='14' height='14' aria-hidden='true'>
-              <path
-                fill='currentColor'
-                d='M3.3 2 2 3.3 6.7 8H4a2 2 0 0 0-2 2v5h4v4h9.7l3 3L20 20.7 3.3 2zM8 17v2h6.7l-2-2H8zm12-4v1.7l-2-2V13h2zm0-2h-4.7l-4-4H18V3H8.7l-2-2H20v8a2 2 0 0 1 2 2v5h-2.7l-2-2H20v-5a2 2 0 0 0-2-2z'
-              />
-            </svg>
-          </button>
-        </h2>
-        <div class='cv-insights'>
-          {insights.map((item, i) => (
-            <p class='cv-insight'>
-              <span class='cv-insight-idx'>{i + 1}. </span>
-              <a class='cv-insight-title' href={item.url} target='_blank' rel='noreferrer'>
-                {item.title}
-              </a>
-              {item.extra ? <span class='cv-insight-extra'>({item.extra})</span> : null}
-              {item.note ? <span class='cv-insight-note'>: {item.note}</span> : null}
-            </p>
-          ))}
-        </div>
-      </section>
-    ) : null
-  }
 </div>
 
 <script>
@@ -344,9 +302,7 @@ const emailMasked = data.email
     const printHideTarget = (id: string) =>
       id === 'skills'
         ? root.querySelector('#skills')
-        : id === 'insights'
-          ? root.querySelector('#insights')
-          : root.querySelector(`[data-print-item="${id}"]`)
+        : root.querySelector(`[data-print-item="${id}"]`)
 
     const setPrintHidden = (id: string, hidden: boolean) => {
       const el = printHideTarget(id)
@@ -644,33 +600,11 @@ const emailMasked = data.email
     content: counter(cv-skill) '. ';
   }
 
-  .cv-insights {
-    margin: 0;
-  }
 
-  .cv-insight {
-    margin: 0;
-    text-align: left;
-    color: hsl(var(--foreground) / 0.92);
-  }
 
-  .cv-insight + .cv-insight {
-    margin-top: 0.4rem;
-  }
 
-  .cv-insight-title {
-    font-weight: 600;
-    color: hsl(var(--primary));
-    text-decoration: none;
-  }
 
-  .cv-insight-title:hover {
-    text-decoration: underline;
-  }
 
-  .cv-insight-extra {
-    color: hsl(var(--muted-foreground));
-  }
 
   .cv-print-toggle {
     display: inline-flex;
@@ -720,7 +654,6 @@ const emailMasked = data.email
   }
 
   #skills.is-print-hidden,
-  #insights.is-print-hidden,
   .cv-skill.is-print-hidden {
     opacity: 0.42;
   }
@@ -872,15 +805,6 @@ const emailMasked = data.email
     .cv-summary-p + .cv-summary-p {
       margin-top: 3.5pt;
     }
-    .cv-insight + .cv-insight {
-      margin-top: 3pt;
-    }
-    .cv-insight,
-    .cv-insight-extra,
-    .cv-insight-note {
-      color: #111 !important;
-    }
-    .cv-insight-title,
     .cv-links a {
       color: #0563c1 !important;
       text-decoration: underline;
@@ -976,8 +900,7 @@ const emailMasked = data.email
 
   .cv.is-print-layout .cv-bullet + .cv-bullet,
   .cv.is-print-layout .cv-skill + .cv-skill,
-  .cv.is-print-layout .cv-summary-p + .cv-summary-p,
-  .cv.is-print-layout .cv-insight + .cv-insight {
+  .cv.is-print-layout .cv-summary-p + .cv-summary-p {
     margin-top: 3pt;
   }
 

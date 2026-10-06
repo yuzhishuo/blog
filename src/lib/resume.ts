@@ -27,20 +27,4 @@ export type ResumeData = {
   education: ResumeEducation[]
   experience: ResumeExperience[]
   skills?: string[]
-  insights?: ResumeInsight[]
-}
-
-export type ResumeInsight =
-  | string
-  | {
-      url: string
-      title?: string
-      note?: string
-    }
-
-export type ResolvedInsight = {
-  url: string
-  title: string
-  extra?: string
-  note?: string
 }

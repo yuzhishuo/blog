@@ -69,15 +69,5 @@
         "适配 FastDDS 作为为 ara::com 通信中间件的绑定"
       ]
     }
-  ],
-  "insights": [
-    {
-      "url": "https://mp.weixin.qq.com/s/U4obtr99TLM2dQsO7HKI9g",
-      "title": "汽车诊断安全：从传输层到应用层的防护机制"
-    },
-    {
-      "url": "https://mp.weixin.qq.com/s/ieOe-UwC4_5zxAH5KtmhhA",
-      "title": "PDU：AUTOSAR CP BSW 层通信架构的核心"
-    }
   ]
 }

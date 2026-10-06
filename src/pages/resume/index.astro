@@ -7,16 +7,14 @@ import PageLayout from '@/layouts/BaseLayout.astro'
 import ResumeSheet from '@/components/resume/ResumeSheet.astro'
 import raw from '@/data/resume.json'
 import type { ResumeData } from '@/lib/resume'
-import { resolveInsights } from '@/lib/unfurl'
 
 const data = raw as ResumeData
-const insights = await resolveInsights(data.insights)
 ---
 
 <PageLayout meta={{ title: `${data.name} · 简历`, description: '个人简历（不公开索引）' }}>
   <div class='resume-page-body mx-auto w-full max-w-3xl pb-10 pt-2'>
     <div class='resume-toolbar no-print mb-4 flex items-center justify-between gap-3'>
-      <p class='m-0 text-xs text-muted-foreground'>专业技能 / 文章旁的打印机图标：打印时隐藏。原创文章在 resume.json 里贴链接即可自动取标题</p>
+      <p class='m-0 text-xs text-muted-foreground'>专业技能旁的打印机图标：打印时隐藏该节</p>
       <button
         type='button'
         id='resume-print-btn'
@@ -25,7 +23,7 @@ const insights = await resolveInsights(data.insights)
         打印
       </button>
     </div>
-    <ResumeSheet data={data} insights={insights} />
+    <ResumeSheet data={data} />
   </div>
 
   <style is:global>
