@@ -65,7 +65,7 @@
       "start": "2022.06",
       "end": "2023.11",
       "bullets": [
-        "开发并维护 AUTOSAR SOME/IP 协议栈。协议栈使用 VectorCAST 完成白盒测试并达到代码覆盖率要求；协议一致性测试通过 TC8 测试，并编写 CAPL 脚本并通过 ETS 测试。",
+        "开发并维护 AUTOSAR SOME/IP AP 协议栈。协议栈使用 VectorCAST 完成白盒测试并达到代码覆盖率要求；协议一致性测试通过 TC8 测试，并编写 CAPL 脚本并通过 ETS 测试。",
         "适配 FastDDS 作为为 ara::com 通信中间件的绑定"
       ]
     }
